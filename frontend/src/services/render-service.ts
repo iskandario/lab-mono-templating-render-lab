@@ -25,10 +25,10 @@ function loadEngine(engineId: string): Promise<unknown> {
       p = import('handlebars').then(m => m.default)
       break
     case 'pug':
-      p = import('pug')
+      p = import('pug').then(m => m.default ?? m)
       break
     case 'ejs':
-      p = import('ejs')
+      p = import('ejs').then(m => m.default ?? m)
       break
     default:
       return Promise.reject(new Error(`Unsupported engine: ${engineId}`))

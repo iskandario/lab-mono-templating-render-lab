@@ -25,7 +25,8 @@ const enginesStore = useEnginesStore()
 
 <style scoped>
 .engine-selector {
-  width: 130px;
+  width: 150px;
+  flex-shrink: 0;
 }
 
 :deep(.v-field__input) {
