@@ -4,6 +4,7 @@ export interface Template {
   description?: string
   engineId: string
   code: string
+  json?: string
   isPublic: boolean
   ownerId: string
   createdAt: string

@@ -2,7 +2,7 @@
   <div class="editor-tabs-container">
     <v-tabs v-model="sandbox.activeTab" density="compact" bg-color="surface">
       <v-tab value="a" class="tab-with-selector">
-        <span>Template A</span>
+        <span>Шаблон A</span>
         <EngineSelector
           :model-value="sandbox.slotA.engineId"
           class="ml-2"
@@ -10,7 +10,7 @@
         />
       </v-tab>
       <v-tab value="b" class="tab-with-selector">
-        <span>Template B</span>
+        <span>Шаблон B</span>
         <EngineSelector
           :model-value="sandbox.slotB.engineId"
           class="ml-2"

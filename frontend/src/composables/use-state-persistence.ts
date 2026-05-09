@@ -100,5 +100,9 @@ export function useStatePersistence() {
     store.resetToPreset()
   }
 
-  return { runRestoreChain, isRestoring, clearAndReset }
+  function skipNextRestore(): void {
+    try { sessionStorage.setItem(SESSION_SHARE_FLAG, '1') } catch { /* ignore */ }
+  }
+
+  return { runRestoreChain, isRestoring, clearAndReset, skipNextRestore }
 }

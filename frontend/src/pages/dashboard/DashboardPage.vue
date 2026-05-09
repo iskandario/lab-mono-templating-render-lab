@@ -19,14 +19,14 @@ function formatDate(iso: string) {
 
 <template>
   <v-container>
-    <div class="text-h5 font-weight-bold mb-6">Dashboard</div>
+    <div class="text-h5 font-weight-bold mb-6">Дашборд</div>
 
     <v-row class="mb-6">
       <v-col cols="12" sm="6">
         <v-card variant="tonal" color="primary">
           <v-card-text>
             <div class="text-h3 font-weight-bold">{{ templatesStore.templates.length }}</div>
-            <div class="text-body-2 text-medium-emphasis mt-1">Templates</div>
+            <div class="text-body-2 text-medium-emphasis mt-1">Шаблоны</div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -34,31 +34,31 @@ function formatDate(iso: string) {
         <v-card variant="tonal" color="secondary">
           <v-card-text>
             <div class="text-h3 font-weight-bold">{{ runsStore.runs.length }}</div>
-            <div class="text-body-2 text-medium-emphasis mt-1">Runs</div>
+            <div class="text-body-2 text-medium-emphasis mt-1">Запуски</div>
           </v-card-text>
         </v-card>
       </v-col>
     </v-row>
 
-    <div class="text-h6 font-weight-medium mb-3">Recent Runs</div>
+    <div class="text-h6 font-weight-medium mb-3">Последние запуски</div>
 
     <v-card v-if="runsStore.loading" variant="outlined">
       <v-skeleton-loader type="table-row@5" />
     </v-card>
 
     <v-card v-else-if="recentRuns.length === 0" variant="outlined">
-      <v-card-text class="text-medium-emphasis text-center py-8">No runs yet.</v-card-text>
+      <v-card-text class="text-medium-emphasis text-center py-8">Пока нет запусков.</v-card-text>
     </v-card>
 
     <v-table v-else density="compact">
       <thead>
         <tr>
-          <th>Engine</th>
-          <th>Avg (ms)</th>
-          <th>Min (ms)</th>
-          <th>P95 (ms)</th>
-          <th>Size</th>
-          <th>Date</th>
+          <th>Движок</th>
+          <th>Ср. (мс)</th>
+          <th>Мин. (мс)</th>
+          <th>P95 (мс)</th>
+          <th>Размер</th>
+          <th>Дата</th>
         </tr>
       </thead>
       <tbody>

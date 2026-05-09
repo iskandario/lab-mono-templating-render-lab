@@ -1,7 +1,7 @@
 <template>
   <div class="metrics-panel">
     <div v-if="!sandbox.metricsA && !sandbox.metricsB" class="metrics-empty">
-      <span class="text-medium-emphasis text-body-2">No benchmark data — click Run Benchmark.</span>
+      <span class="text-medium-emphasis text-body-2">Нет данных — нажмите «Запустить бенчмарк».</span>
     </div>
     <div v-else class="metrics-content">
       <v-chip
@@ -15,19 +15,19 @@
 
       <div class="metrics-slots">
         <div v-if="sandbox.metricsA" class="metrics-slot">
-          <div class="metrics-slot-label text-caption font-weight-medium text-medium-emphasis">Slot A</div>
+          <div class="metrics-slot-label text-caption font-weight-medium text-medium-emphasis">Слот A</div>
           <table class="metrics-table text-body-2">
             <tbody>
               <tr>
-                <td class="metric-key text-medium-emphasis">avg</td>
+                <td class="metric-key text-medium-emphasis">ср.</td>
                 <td class="metric-val">{{ formatMs(sandbox.metricsA.avgMs) }}</td>
               </tr>
               <tr>
-                <td class="metric-key text-medium-emphasis">min</td>
+                <td class="metric-key text-medium-emphasis">мин.</td>
                 <td class="metric-val">{{ formatMs(sandbox.metricsA.minMs) }}</td>
               </tr>
               <tr>
-                <td class="metric-key text-medium-emphasis">max</td>
+                <td class="metric-key text-medium-emphasis">макс.</td>
                 <td class="metric-val">{{ formatMs(sandbox.metricsA.maxMs) }}</td>
               </tr>
               <tr>
@@ -35,7 +35,7 @@
                 <td class="metric-val">{{ formatMs(sandbox.metricsA.p95Ms) }}</td>
               </tr>
               <tr>
-                <td class="metric-key text-medium-emphasis">size</td>
+                <td class="metric-key text-medium-emphasis">размер</td>
                 <td class="metric-val">{{ formatBytes(sandbox.metricsA.outputBytes) }}</td>
               </tr>
             </tbody>
@@ -45,19 +45,19 @@
         <v-divider v-if="sandbox.metricsA && sandbox.metricsB" vertical class="mx-3" />
 
         <div v-if="sandbox.metricsB" class="metrics-slot">
-          <div class="metrics-slot-label text-caption font-weight-medium text-medium-emphasis">Slot B</div>
+          <div class="metrics-slot-label text-caption font-weight-medium text-medium-emphasis">Слот B</div>
           <table class="metrics-table text-body-2">
             <tbody>
               <tr>
-                <td class="metric-key text-medium-emphasis">avg</td>
+                <td class="metric-key text-medium-emphasis">ср.</td>
                 <td class="metric-val">{{ formatMs(sandbox.metricsB.avgMs) }}</td>
               </tr>
               <tr>
-                <td class="metric-key text-medium-emphasis">min</td>
+                <td class="metric-key text-medium-emphasis">мин.</td>
                 <td class="metric-val">{{ formatMs(sandbox.metricsB.minMs) }}</td>
               </tr>
               <tr>
-                <td class="metric-key text-medium-emphasis">max</td>
+                <td class="metric-key text-medium-emphasis">макс.</td>
                 <td class="metric-val">{{ formatMs(sandbox.metricsB.maxMs) }}</td>
               </tr>
               <tr>
@@ -65,7 +65,7 @@
                 <td class="metric-val">{{ formatMs(sandbox.metricsB.p95Ms) }}</td>
               </tr>
               <tr>
-                <td class="metric-key text-medium-emphasis">size</td>
+                <td class="metric-key text-medium-emphasis">размер</td>
                 <td class="metric-val">{{ formatBytes(sandbox.metricsB.outputBytes) }}</td>
               </tr>
             </tbody>
@@ -88,9 +88,9 @@ const speedLabel = computed(() => {
   const a = sandbox.metricsA.avgMs
   const b = sandbox.metricsB.avgMs
   const maxAvg = Math.max(a, b)
-  if (maxAvg === 0 || Math.abs(a - b) / maxAvg * 100 < 1) return 'Identical speed'
+  if (maxAvg === 0 || Math.abs(a - b) / maxAvg * 100 < 1) return 'Одинаковая скорость'
   const pct = Math.round(Math.abs(a - b) / maxAvg * 100)
-  return `Template ${a < b ? 'A' : 'B'} faster by ${pct}%`
+  return `Шаблон ${a < b ? 'A' : 'B'} быстрее на ${pct}%`
 })
 </script>
 

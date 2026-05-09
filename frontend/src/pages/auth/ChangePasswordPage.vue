@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <div class="text-h5 font-weight-bold mb-4">Change Password</div>
-    <p class="text-medium-emphasis">Change password page — coming soon.</p>
+    <div class="text-h5 font-weight-bold mb-4">Смена пароля</div>
+    <p class="text-medium-emphasis">Страница смены пароля — скоро.</p>
   </v-container>
 </template>

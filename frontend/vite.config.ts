@@ -5,13 +5,14 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import vuetify from 'vite-plugin-vuetify'
 
-// Redirect `assert` imports during dep pre-bundling to the browser shim.
-// pug-code-gen requires `assert`; Rolldown resolves it here instead of Node built-ins.
+// Redirect `assert` imports during dep pre-bundling to the CJS browser shim.
+// pug-code-gen does require('assert') and calls it as a function — the shim must be CJS
+// (module.exports = fn) so Rolldown's CJS consumer gets a callable, not a namespace object.
 const assertRolldownShim: Plugin = {
   name: 'assert-browser-shim',
   resolveId(id: string) {
     if (id === 'assert') {
-      return fileURLToPath(new URL('./src/shims/node-assert-shim.ts', import.meta.url))
+      return fileURLToPath(new URL('./src/shims/node-assert-shim.cjs', import.meta.url))
     }
   },
 }
@@ -55,7 +56,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       // Pug imports these Node built-ins at module load time; redirect to browser-safe stubs.
       'path': fileURLToPath(new URL('./src/shims/node-path-shim.ts', import.meta.url)),
-      'assert': fileURLToPath(new URL('./src/shims/node-assert-shim.ts', import.meta.url)),
+      'assert': fileURLToPath(new URL('./src/shims/node-assert-shim.cjs', import.meta.url)),
       'fs': fileURLToPath(new URL('./src/shims/node-fs-shim.ts', import.meta.url)),
     },
   },

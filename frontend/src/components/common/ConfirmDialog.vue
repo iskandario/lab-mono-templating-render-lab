@@ -18,8 +18,8 @@ const emit = defineEmits<{
       <v-card-text>{{ message }}</v-card-text>
       <v-card-actions>
         <v-spacer />
-        <v-btn variant="text" @click="emit('cancel')">Cancel</v-btn>
-        <v-btn color="error" variant="tonal" @click="emit('confirm')">Confirm</v-btn>
+        <v-btn variant="text" @click="emit('cancel')">Отмена</v-btn>
+        <v-btn color="error" variant="tonal" @click="emit('confirm')">Подтвердить</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

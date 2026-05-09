@@ -13,7 +13,7 @@ function formatDate(iso: string) {
 
 <template>
   <v-container>
-    <div class="text-h5 font-weight-bold mb-5">My Runs</div>
+    <div class="text-h5 font-weight-bold mb-5">Мои запуски</div>
 
     <v-card v-if="store.loading" variant="outlined">
       <v-skeleton-loader type="table-row@5" />
@@ -21,21 +21,21 @@ function formatDate(iso: string) {
 
     <v-card v-else-if="store.runs.length === 0" variant="outlined">
       <v-card-text class="text-medium-emphasis text-center py-10">
-        <p class="mb-3">No runs yet.</p>
-        <v-btn :to="{ name: 'sandbox' }" color="primary" variant="tonal">Run a Benchmark</v-btn>
+        <p class="mb-3">Пока нет запусков.</p>
+        <v-btn :to="{ name: 'sandbox' }" color="primary" variant="tonal">Запустить бенчмарк</v-btn>
       </v-card-text>
     </v-card>
 
     <v-table v-else>
       <thead>
         <tr>
-          <th>Engine</th>
-          <th>Iterations</th>
-          <th>Avg (ms)</th>
-          <th>Min (ms)</th>
-          <th>P95 (ms)</th>
-          <th>Size (KB)</th>
-          <th>Date</th>
+          <th>Движок</th>
+          <th>Итерации</th>
+          <th>Ср. (мс)</th>
+          <th>Мин. (мс)</th>
+          <th>P95 (мс)</th>
+          <th>Размер (КБ)</th>
+          <th>Дата</th>
         </tr>
       </thead>
       <tbody>

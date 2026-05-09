@@ -9,7 +9,7 @@
           :disabled="isRunning"
           @click="runBenchmark"
         >
-          Run Benchmark
+          Запустить бенчмарк
         </v-btn>
 
         <v-btn
@@ -19,7 +19,7 @@
           color="error"
           @click="cancel"
         >
-          Cancel
+          Отмена
         </v-btn>
 
         <v-btn
@@ -28,7 +28,7 @@
           :disabled="isRunning"
           @click="sandbox.mode = sandbox.mode === 'compare' ? 'editor' : 'compare'"
         >
-          Compare
+          Сравнить
         </v-btn>
 
         <div class="iter-group">
@@ -74,7 +74,7 @@
           :loading="isSavingRun"
           @click="saveRun"
         >
-          Save Run
+          Сохранить запуск
         </v-btn>
 
         <v-btn
@@ -84,7 +84,16 @@
           :loading="isSavingState"
           @click="saveAndShare"
         >
-          {{ sandbox.isDirty ? 'Save' : 'Saved ✓' }}
+          {{ sandbox.isDirty ? 'Сохранить' : 'Сохранено ✓' }}
+        </v-btn>
+
+        <v-btn
+          v-if="auth.isAuthenticated"
+          size="small"
+          variant="text"
+          @click="saveTemplateOpen = true"
+        >
+          Сохранить как шаблон
         </v-btn>
 
         <v-btn
@@ -93,7 +102,7 @@
           :disabled="isSavingState"
           @click="newSandbox"
         >
-          New
+          Новый
         </v-btn>
       </div>
     </div>
@@ -105,16 +114,26 @@
       class="bar-progress"
     />
   </div>
+
+  <SaveAsTemplateDialog
+    v-model:open="saveTemplateOpen"
+    @saved="onTemplateSaved"
+  />
+
+  <v-snackbar v-model="templateSavedSnackbar" :timeout="3000" location="bottom right">
+    Шаблон сохранён!
+  </v-snackbar>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useSandboxStore } from '@/stores/sandbox-store'
 import { useAuthStore } from '@/stores/auth-store'
 import { useBenchmark } from '@/composables/use-benchmark'
 import { useSandboxShare } from '@/composables/use-sandbox-share'
 import { useSaveRun } from '@/composables/use-save-run'
 import { useStatePersistence } from '@/composables/use-state-persistence'
+import SaveAsTemplateDialog from './SaveAsTemplateDialog.vue'
 
 const ITER_PRESETS = [100, 500, 1000, 5000] as const
 
@@ -126,9 +145,15 @@ const { isSaving: isSavingRun, feedbackMsg: saveRunMsg, saveRun } = useSaveRun()
 const { clearAndReset } = useStatePersistence()
 
 const hasMetrics = computed(() => !!(sandbox.metricsA || sandbox.metricsB))
+const saveTemplateOpen = ref(false)
+const templateSavedSnackbar = ref(false)
 
 function newSandbox() {
   clearAndReset()
+}
+
+function onTemplateSaved() {
+  templateSavedSnackbar.value = true
 }
 </script>
 

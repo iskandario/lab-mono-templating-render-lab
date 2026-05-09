@@ -1,43 +1,43 @@
 <template>
   <div class="compare-view">
     <div v-if="!sandbox.metricsA && !sandbox.metricsB" class="compare-empty">
-      <span class="text-medium-emphasis text-body-2">Run benchmark first</span>
+      <span class="text-medium-emphasis text-body-2">Сначала запустите бенчмарк</span>
     </div>
     <template v-else>
       <div class="diff-bar">
         <v-chip size="x-small" :color="isIdentical ? 'success' : 'warning'">
-          {{ isIdentical ? 'Output: identical' : `${diffCount} lines differ` }}
+          {{ isIdentical ? 'Вывод: идентичный' : `Различий: ${diffCount} строк` }}
         </v-chip>
       </div>
       <div class="compare-panels">
         <div class="compare-panel">
           <div class="panel-header text-caption text-medium-emphasis">
-            Template A · {{ engineNameA }}
+            Шаблон A · {{ engineNameA }}
           </div>
           <iframe
             v-if="sandbox.metricsA"
             :srcdoc="sandbox.metricsA.output"
             sandbox=""
             class="compare-iframe"
-            title="Template A preview"
+            title="Предпросмотр шаблона A"
           />
           <div v-else class="panel-empty">
-            <span class="text-medium-emphasis text-body-2">No data for Slot A</span>
+            <span class="text-medium-emphasis text-body-2">Нет данных для слота A</span>
           </div>
         </div>
         <div class="compare-panel">
           <div class="panel-header text-caption text-medium-emphasis">
-            Template B · {{ engineNameB }}
+            Шаблон B · {{ engineNameB }}
           </div>
           <iframe
             v-if="sandbox.metricsB"
             :srcdoc="sandbox.metricsB.output"
             sandbox=""
             class="compare-iframe"
-            title="Template B preview"
+            title="Предпросмотр шаблона B"
           />
           <div v-else class="panel-empty">
-            <span class="text-medium-emphasis text-body-2">No data for Slot B</span>
+            <span class="text-medium-emphasis text-body-2">Нет данных для слота B</span>
           </div>
         </div>
       </div>

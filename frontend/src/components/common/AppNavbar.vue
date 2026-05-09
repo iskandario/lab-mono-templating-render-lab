@@ -23,7 +23,7 @@ async function handleLogout() {
     </v-app-bar-title>
 
     <v-btn :to="{ name: 'sandbox' }" variant="text">Sandbox</v-btn>
-    <v-btn :to="{ name: 'templates' }" variant="text">Templates</v-btn>
+    <v-btn :to="{ name: 'templates' }" variant="text">Шаблоны</v-btn>
 
     <v-btn variant="text" @click="toggle">
       <Sun v-if="isDark" :size="20" />
@@ -39,18 +39,18 @@ async function handleLogout() {
           </v-btn>
         </template>
         <v-list>
-          <v-list-item :to="{ name: 'dashboard' }" title="Dashboard" />
-          <v-list-item :to="{ name: 'dashboard-templates' }" title="My Templates" />
-          <v-list-item :to="{ name: 'dashboard-runs' }" title="My Runs" />
+          <v-list-item :to="{ name: 'dashboard' }" title="Дашборд" />
+          <v-list-item :to="{ name: 'dashboard-templates' }" title="Мои шаблоны" />
+          <v-list-item :to="{ name: 'dashboard-runs' }" title="Мои запуски" />
           <v-divider />
-          <v-list-item title="Logout" @click="handleLogout" />
+          <v-list-item title="Выйти" @click="handleLogout" />
         </v-list>
       </v-menu>
     </template>
 
     <template v-else>
-      <v-btn :to="{ name: 'login' }" variant="text">Login</v-btn>
-      <v-btn :to="{ name: 'register' }" variant="outlined" class="mr-2">Register</v-btn>
+      <v-btn :to="{ name: 'login' }" variant="text">Войти</v-btn>
+      <v-btn :to="{ name: 'register' }" variant="outlined" class="mr-2">Регистрация</v-btn>
     </template>
   </v-app-bar>
 </template>

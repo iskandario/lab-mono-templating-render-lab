@@ -25,8 +25,8 @@ onMounted(async () => {
       <v-progress-circular indeterminate color="primary" />
     </div>
     <div v-else class="text-center mt-8">
-      <p class="text-medium-emphasis mb-4">State not found.</p>
-      <v-btn color="primary" to="/sandbox">Go to Sandbox</v-btn>
+      <p class="text-medium-emphasis mb-4">Состояние не найдено.</p>
+      <v-btn color="primary" to="/sandbox">Перейти в Sandbox</v-btn>
     </div>
   </v-container>
 </template>

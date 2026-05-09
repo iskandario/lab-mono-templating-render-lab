@@ -39,7 +39,7 @@ function formatDate(iso: string) {
         color="primary"
         @click="emit('open', template)"
       >
-        Open in Sandbox
+        Открыть в Sandbox
       </v-btn>
       <v-btn
         v-if="showClone"
@@ -47,7 +47,7 @@ function formatDate(iso: string) {
         variant="text"
         @click="emit('clone', template)"
       >
-        Clone
+        Клонировать
       </v-btn>
       <v-spacer />
       <v-btn
@@ -57,7 +57,7 @@ function formatDate(iso: string) {
         color="error"
         @click="emit('delete', template)"
       >
-        Delete
+        Удалить
       </v-btn>
     </v-card-actions>
   </v-card>

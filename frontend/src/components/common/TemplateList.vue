@@ -24,7 +24,7 @@ const emit = defineEmits<{
 
   <div v-else-if="templates.length === 0" class="text-center py-12 text-medium-emphasis">
     <slot name="empty">
-      <p>No templates yet.</p>
+      <p>Пока нет шаблонов.</p>
     </slot>
   </div>
 
