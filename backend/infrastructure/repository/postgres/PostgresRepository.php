@@ -61,7 +61,11 @@ abstract class PostgresRepository
         $statement = $this->connection->prepare($sql);
 
         foreach ($params as $name => $value) {
-            $statement->bindValue(':' . $name, $this->normalizeParameterValue($value));
+            $statement->bindValue(
+                ':' . $name,
+                $this->normalizeParameterValue($value),
+                $this->parameterType($value)
+            );
         }
 
         $statement->execute();
@@ -92,5 +96,18 @@ abstract class PostgresRepository
         }
 
         return $value;
+    }
+
+    private function parameterType(mixed $value): int
+    {
+        if (is_bool($value)) {
+            return PDO::PARAM_BOOL;
+        }
+
+        if ($value === null) {
+            return PDO::PARAM_NULL;
+        }
+
+        return PDO::PARAM_STR;
     }
 }

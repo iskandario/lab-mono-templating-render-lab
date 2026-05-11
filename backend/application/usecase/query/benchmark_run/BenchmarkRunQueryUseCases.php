@@ -42,7 +42,7 @@ final readonly class BenchmarkRunView
 {
     /**
      * @param array<string, mixed> $contextJson
-     * @param int[] $samplesMs
+     * @param float[] $samplesMs
      */
     public function __construct(
         public string $benchmarkRunId,
@@ -56,9 +56,9 @@ final readonly class BenchmarkRunView
         public string $status,
         public array $samplesMs,
         public ?float $avgMs,
-        public ?int $minMs,
-        public ?int $maxMs,
-        public ?int $p95Ms,
+        public ?float $minMs,
+        public ?float $maxMs,
+        public ?float $p95Ms,
         public ?int $outputBytes,
         public ?string $errorCode,
         public ?string $errorMessage

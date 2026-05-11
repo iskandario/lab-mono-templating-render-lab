@@ -21,16 +21,16 @@ final readonly class StartBenchmarkRunCommand
 final readonly class CompleteBenchmarkRunSuccessCommand
 {
     /**
-     * @param int[] $samplesMs
+     * @param float[] $samplesMs
      */
     public function __construct(
         public string $actorId,
         public string $benchmarkRunId,
         public array $samplesMs,
         public float $avgMs,
-        public int $minMs,
-        public int $maxMs,
-        public int $p95Ms,
+        public float $minMs,
+        public float $maxMs,
+        public float $p95Ms,
         public ?int $outputBytes
     ) {
     }

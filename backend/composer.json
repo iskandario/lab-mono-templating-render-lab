@@ -32,7 +32,9 @@
       "infrastructure/presentation/http/controller/StartRenderRunController.php",
       "infrastructure/presentation/http/controller/BenchmarkRunCommandControllers.php",
       "infrastructure/presentation/http/controller/AccountCommandControllers.php",
-      "infrastructure/presentation/http/controller/QueryControllers.php"
+      "infrastructure/presentation/http/controller/QueryControllers.php",
+      "infrastructure/presentation/http/controller/SaveStateController.php",
+      "infrastructure/presentation/http/controller/GetStateController.php"
     ]
   }
 }
