@@ -5,6 +5,10 @@ import router from '@/router'
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
 const withoutTrailingSlash = (value: string) => value.replace(/\/$/, '')
 
+interface RequestOptions {
+  redirectOnUnauthorized?: boolean
+}
+
 function getBaseUrl() {
   const configured = import.meta.env.VITE_API_URL ?? ''
   if (!configured) return ''
@@ -23,7 +27,11 @@ function getBaseUrl() {
   return withoutTrailingSlash(configured)
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  options: RequestOptions = {},
+): Promise<T> {
   const res = await fetch(`${getBaseUrl()}${path}`, {
     ...init,
     credentials: 'include',
@@ -32,7 +40,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
   if (res.status === 401) {
     useAuthStore().clearSession()
-    router.push('/login')
+    if (options.redirectOnUnauthorized !== false) {
+      router.push('/login')
+    }
     throw new Error('Unauthorized')
   }
 
@@ -46,7 +56,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const http = {
-  get: <T>(path: string) => request<T>(path),
+  get: <T>(path: string, options?: RequestOptions) => request<T>(path, undefined, options),
   post: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   put: <T>(path: string, body: unknown) =>

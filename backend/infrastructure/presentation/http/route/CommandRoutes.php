@@ -8,6 +8,7 @@ use infrastructure\presentation\http\controller\CompleteBenchmarkRunFailureContr
 use infrastructure\presentation\http\controller\CompleteBenchmarkRunSuccessController;
 use infrastructure\presentation\http\controller\CompleteRenderRunFailureController;
 use infrastructure\presentation\http\controller\CompleteRenderRunSuccessController;
+use infrastructure\presentation\http\controller\CurrentSessionController;
 use infrastructure\presentation\http\controller\DeactivateTemplateController;
 use infrastructure\presentation\http\controller\GetBenchmarkRunController;
 use infrastructure\presentation\http\controller\GetRecentFailuresController;
@@ -58,6 +59,7 @@ final class CommandRoutes
             GetStateController::class,
             RegisterUserController::class,
             LoginUserController::class,
+            CurrentSessionController::class,
             LogoutUserController::class,
             OpenApiJsonController::class,
             SwaggerUiController::class,

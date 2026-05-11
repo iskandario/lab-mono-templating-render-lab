@@ -31,7 +31,9 @@ final class StartBenchmarkRunController extends AbstractJsonController
         $payload = $this->body($request);
         $result = $this->useCase->execute(new StartBenchmarkRunCommand(
             actorId: $this->requireActorId($request),
-            templateId: $this->requireString($payload, 'templateId'),
+            templateId: $this->optionalString($payload, 'templateId'),
+            engineType: $this->optionalString($payload, 'engineType'),
+            templateBody: $this->optionalString($payload, 'templateBody'),
             contextJson: $this->requireArray($payload, 'context'),
             iterationsN: $this->requireInt($payload, 'iterationsN')
         ));
@@ -90,7 +92,7 @@ final class CompleteBenchmarkRunSuccessController extends AbstractJsonController
 }
 
 #[Route('POST', '/benchmark-runs/{benchmarkRunId}/failure')]
-#[OpenApi('Complete benchmark run with failure', ['Benchmark runs'], requestBody: 'CompleteBenchmarkRunResponse')]
+#[OpenApi('Complete benchmark run with failure', ['Benchmark runs'], requestBody: 'CompleteBenchmarkRunFailureRequest', response: 'CompleteBenchmarkRunResponse')]
 final class CompleteBenchmarkRunFailureController extends AbstractJsonController
 {
     public function __construct(

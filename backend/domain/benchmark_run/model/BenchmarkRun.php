@@ -15,8 +15,9 @@ class BenchmarkRun
     public function __construct(
         public string $benchmarkRunId,
         public string $ownerId,
-        public string $templateId,
+        public ?string $templateId,
         public string $engineType,
+        public string $templateBodySnapshot,
         public array $contextJson,
         public int $iterationsN,
         public DateTimeImmutable $startedAt,
@@ -33,8 +34,9 @@ class BenchmarkRun
     ) {
         $this->benchmarkRunId = trim($this->benchmarkRunId);
         $this->ownerId = trim($this->ownerId);
-        $this->templateId = trim($this->templateId);
+        $this->templateId = $this->templateId !== null ? trim($this->templateId) : null;
         $this->engineType = EngineType::from($this->engineType)->value();
+        $this->templateBodySnapshot = trim($this->templateBodySnapshot);
         $this->status = BenchmarkStatus::from($this->status)->value();
 
         $this->assertIdentity();
@@ -48,8 +50,9 @@ class BenchmarkRun
     public static function start(
         string $benchmarkRunId,
         string $ownerId,
-        string $templateId,
+        ?string $templateId,
         string $engineType,
+        string $templateBodySnapshot,
         array $contextJson,
         int $iterationsN,
         DateTimeImmutable $startedAt
@@ -59,6 +62,7 @@ class BenchmarkRun
             ownerId: $ownerId,
             templateId: $templateId,
             engineType: $engineType,
+            templateBodySnapshot: $templateBodySnapshot,
             contextJson: $contextJson,
             iterationsN: $iterationsN,
             startedAt: $startedAt
@@ -145,7 +149,11 @@ class BenchmarkRun
         }
 
         if ($this->templateId === '') {
-            throw new ValidationException('benchmark_run.template_id.empty: ' . $this->benchmarkRunId, 4606);
+            $this->templateId = null;
+        }
+
+        if ($this->templateBodySnapshot === '') {
+            throw new ValidationException('benchmark_run.template_body_snapshot.empty: ' . $this->benchmarkRunId, 4606);
         }
     }
 

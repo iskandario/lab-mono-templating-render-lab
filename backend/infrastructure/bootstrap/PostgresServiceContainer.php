@@ -56,6 +56,7 @@ use infrastructure\presentation\http\controller\CompleteBenchmarkRunFailureContr
 use infrastructure\presentation\http\controller\CompleteBenchmarkRunSuccessController;
 use infrastructure\presentation\http\controller\CompleteRenderRunFailureController;
 use infrastructure\presentation\http\controller\CompleteRenderRunSuccessController;
+use infrastructure\presentation\http\controller\CurrentSessionController;
 use infrastructure\presentation\http\controller\DeactivateTemplateController;
 use infrastructure\presentation\http\controller\GetBenchmarkRunController;
 use infrastructure\presentation\http\controller\GetRecentFailuresController;
@@ -76,6 +77,8 @@ use infrastructure\presentation\http\controller\StartBenchmarkRunController;
 use infrastructure\presentation\http\controller\StartRenderRunController;
 use infrastructure\presentation\http\controller\SwaggerUiController;
 use infrastructure\presentation\http\controller\UpdateTemplateBodyController;
+use infrastructure\presentation\http\JwtSessionTokenProcessor;
+use infrastructure\presentation\http\SessionCookieFactory;
 use infrastructure\presentation\http\openapi\OpenApiDocumentFactory;
 use infrastructure\presentation\http\route\CommandRoutes;
 use infrastructure\repository\postgres\PostgresAuthSessionRepository;
@@ -125,8 +128,9 @@ final class PostgresServiceContainer
             SaveStateController::class => $this->get(SaveStateController::class, fn () => new SaveStateController($this->sharedStateRepository(), $this->idGenerator(), $this->clock())),
             GetStateController::class => $this->get(GetStateController::class, fn () => new GetStateController($this->sharedStateRepository())),
             RegisterUserController::class => $this->get(RegisterUserController::class, fn () => new RegisterUserController($this->registerUserUseCase())),
-            LoginUserController::class => $this->get(LoginUserController::class, fn () => new LoginUserController($this->loginUserUseCase())),
-            LogoutUserController::class => $this->get(LogoutUserController::class, fn () => new LogoutUserController($this->logoutUserUseCase())),
+            LoginUserController::class => $this->get(LoginUserController::class, fn () => new LoginUserController($this->loginUserUseCase(), $this->sessionCookieFactory(), $this->jwtSessionTokenProcessor())),
+            CurrentSessionController::class => $this->get(CurrentSessionController::class, fn () => new CurrentSessionController($this->userRepository())),
+            LogoutUserController::class => $this->get(LogoutUserController::class, fn () => new LogoutUserController($this->logoutUserUseCase(), $this->sessionCookieFactory())),
             OpenApiJsonController::class => $this->get(OpenApiJsonController::class, fn () => new OpenApiJsonController(new OpenApiDocumentFactory(CommandRoutes::controllerClasses()))),
             SwaggerUiController::class => $this->get(SwaggerUiController::class, fn () => new SwaggerUiController()),
             default => throw new \InvalidArgumentException('Unknown controller: ' . $className),
@@ -374,12 +378,31 @@ final class PostgresServiceContainer
 
     private function passwordHasher(): NativePasswordHasher
     {
-        return $this->get(NativePasswordHasher::class, fn () => new NativePasswordHasher());
+        return $this->get(NativePasswordHasher::class, fn () => new NativePasswordHasher(
+            pepper: $this->config->passwordPepper,
+            workFactor: $this->config->passwordWorkFactor
+        ));
     }
 
     private function sessionTtl(): DateInterval
     {
         return $this->get(DateInterval::class, fn () => new DateInterval($this->config->sessionTtlSpec));
+    }
+
+    private function sessionCookieFactory(): SessionCookieFactory
+    {
+        return $this->get(SessionCookieFactory::class, fn () => new SessionCookieFactory(
+            name: $this->config->cookieName,
+            path: $this->config->cookiePath,
+            httpOnly: $this->config->cookieHttpOnly,
+            secure: $this->config->cookieSecure,
+            sameSite: $this->config->cookieSameSite
+        ));
+    }
+
+    public function jwtSessionTokenProcessor(): JwtSessionTokenProcessor
+    {
+        return $this->get(JwtSessionTokenProcessor::class, fn () => new JwtSessionTokenProcessor($this->config->jwtSecret));
     }
 
     /**

@@ -4,8 +4,8 @@ import type { User } from '@/types'
 import * as authApi from '@/api/auth-api'
 
 export const useAuthStore = defineStore('auth', () => {
-  const stored = localStorage.getItem('auth_user')
-  const user = ref<User | null>(stored ? (JSON.parse(stored) as User) : null)
+  const user = ref<User | null>(loadStoredUser())
+  const isInitialized = ref(false)
   const isAuthenticated = computed(() => !!user.value)
 
   async function login(email: string, password: string) {
@@ -41,5 +41,33 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { user, isAuthenticated, login, register, logout, clearSession, fetchCurrentUser }
+  async function initializeAuth() {
+    try {
+      await fetchCurrentUser()
+    } finally {
+      isInitialized.value = true
+    }
+  }
+
+  return {
+    user,
+    isAuthenticated,
+    isInitialized,
+    login,
+    register,
+    logout,
+    clearSession,
+    fetchCurrentUser,
+    initializeAuth,
+  }
 })
+
+function loadStoredUser(): User | null {
+  try {
+    const stored = localStorage.getItem('auth_user')
+    return stored ? (JSON.parse(stored) as User) : null
+  } catch {
+    localStorage.removeItem('auth_user')
+    return null
+  }
+}

@@ -20,8 +20,9 @@ final class BenchmarkRunRowMapper
         return new BenchmarkRun(
             benchmarkRunId: (string)$row['benchmark_run_id'],
             ownerId: (string)$row['owner_id'],
-            templateId: (string)$row['template_id'],
+            templateId: $row['template_id'] !== null ? (string)$row['template_id'] : null,
             engineType: (string)$row['engine_type'],
+            templateBodySnapshot: (string)($row['template_body_snapshot'] ?? ''),
             contextJson: JsonValue::decode((string)$row['context_json']),
             iterationsN: (int)$row['iterations_n'],
             startedAt: new DateTimeImmutable((string)$row['started_at']),

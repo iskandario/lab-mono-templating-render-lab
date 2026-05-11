@@ -11,7 +11,9 @@ final readonly class StartBenchmarkRunCommand
      */
     public function __construct(
         public string $actorId,
-        public string $templateId,
+        public ?string $templateId,
+        public ?string $engineType,
+        public ?string $templateBody,
         public array $contextJson,
         public int $iterationsN
     ) {

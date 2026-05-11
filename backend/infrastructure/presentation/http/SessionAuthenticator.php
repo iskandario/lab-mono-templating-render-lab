@@ -14,7 +14,9 @@ final class SessionAuthenticator
 {
     public function __construct(
         private readonly AuthSessionRepositoryInterface $authSessionRepository,
-        private readonly ClockInterface $clock
+        private readonly ClockInterface $clock,
+        private readonly JwtSessionTokenProcessor $tokenProcessor,
+        private readonly string $cookieName = 'auth_token'
     ) {
     }
 
@@ -24,12 +26,17 @@ final class SessionAuthenticator
             return $request;
         }
 
-        $sessionId = $request->cookie('session_id');
-        if ($sessionId === null || trim($sessionId) === '') {
-            throw new UnauthorizedHttpException('auth.session_id.required');
+        $token = $request->cookie($this->cookieName);
+        if ($token === null || trim($token) === '') {
+            throw new UnauthorizedHttpException('auth.token.required');
         }
 
-        $session = $this->authSessionRepository->getById(trim($sessionId));
+        $sessionId = $this->tokenProcessor->decodeSessionId(trim($token));
+        if ($sessionId === null) {
+            throw new UnauthorizedHttpException('auth.token.invalid');
+        }
+
+        $session = $this->authSessionRepository->getById($sessionId);
         if ($session === null) {
             throw new UnauthorizedHttpException('auth.session.not_found');
         }
@@ -43,7 +50,7 @@ final class SessionAuthenticator
             queryParams: $request->queryParams,
             cookies: $request->cookies,
             routeParams: $request->routeParams,
-            attributes: [...$request->attributes, 'actorId' => $session->userId],
+            attributes: [...$request->attributes, 'actorId' => $session->userId, 'sessionId' => $session->sessionId],
             body: $request->body
         );
     }

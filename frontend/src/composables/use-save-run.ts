@@ -32,10 +32,6 @@ export function useSaveRun() {
     return parsed as Record<string, unknown>
   }
 
-  function runName(slot: 'A' | 'B'): string {
-    return `Benchmark ${slot} ${new Date().toISOString()}`
-  }
-
   async function saveRun(): Promise<void> {
     if (isSaving.value) return
     isSaving.value = true
@@ -44,7 +40,6 @@ export function useSaveRun() {
       const calls: Promise<RenderRun>[] = []
       if (sandbox.metricsA) {
         const run: SaveBenchmarkRunData = {
-          name: runName('A'),
           engineId: sandbox.slotA.engineId,
           code: sandbox.slotA.code,
           context,
@@ -56,7 +51,6 @@ export function useSaveRun() {
       }
       if (sandbox.metricsB) {
         const run: SaveBenchmarkRunData = {
-          name: runName('B'),
           engineId: sandbox.slotB.engineId,
           code: sandbox.slotB.code,
           context,

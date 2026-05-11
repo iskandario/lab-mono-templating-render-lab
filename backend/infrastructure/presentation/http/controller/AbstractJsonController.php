@@ -46,8 +46,8 @@ abstract class AbstractJsonController
 
     protected function requireSessionId(HttpRequest $request): string
     {
-        $sessionId = $request->cookie('session_id');
-        if ($sessionId !== null && trim($sessionId) !== '') {
+        $sessionId = $request->attribute('sessionId');
+        if (is_string($sessionId) && trim($sessionId) !== '') {
             return trim($sessionId);
         }
 

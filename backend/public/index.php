@@ -55,17 +55,37 @@ foreach ($requiredEnvKeys as $key) {
     $env[$key] = $value;
 }
 
-foreach (['POSTGRES_HOST', 'POSTGRES_PORT', 'POSTGRES_SSLMODE', 'SESSION_TTL_SPEC'] as $optionalKey) {
+foreach ([
+    'POSTGRES_HOST',
+    'POSTGRES_PORT',
+    'POSTGRES_SSLMODE',
+    'SESSION_TTL_SPEC',
+    'JWT_SECRET',
+    'PASSWORD_PEPPER',
+    'PASSWORD_WORK_FACTOR',
+    'COOKIE_NAME',
+    'COOKIE_PATH',
+    'COOKIE_HTTPONLY',
+    'COOKIE_SECURE',
+    'COOKIE_SAMESITE',
+    'SESSION_COOKIE_SECURE',
+] as $optionalKey) {
     $value = getenv($optionalKey);
     if ($value !== false) {
         $env[$optionalKey] = $value;
     }
 }
 
-$container = new PostgresServiceContainer(PostgresConfig::fromEnv($env));
+$config = PostgresConfig::fromEnv($env);
+$container = new PostgresServiceContainer($config);
 $kernel = new HttpKernel(
     new Router($container->commandRoutes()),
-    new SessionAuthenticator($container->authSessionRepository(), new SystemClock())
+    new SessionAuthenticator(
+        $container->authSessionRepository(),
+        new SystemClock(),
+        $container->jwtSessionTokenProcessor(),
+        $config->cookieName
+    )
 );
 $request = (new RequestFactory())->fromGlobals($_SERVER, $_COOKIE);
 

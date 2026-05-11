@@ -53,7 +53,7 @@ final class OpenApiDocumentFactory
                     'sessionCookie' => [
                         'type' => 'apiKey',
                         'in' => 'cookie',
-                        'name' => 'session_id',
+                        'name' => 'auth_token',
                     ],
                 ],
                 'schemas' => $this->schemas(),
@@ -241,8 +241,9 @@ final class OpenApiDocumentFactory
             'BenchmarkRun' => $this->object([
                 'benchmarkRunId' => ['type' => 'string'],
                 'ownerId' => ['type' => 'string'],
-                'templateId' => ['type' => 'string'],
+                'templateId' => ['type' => ['string', 'null']],
                 'engineType' => ['type' => 'string'],
+                'templateBodySnapshot' => ['type' => 'string'],
                 'context' => ['type' => 'object', 'additionalProperties' => true],
                 'iterationsN' => ['type' => 'integer'],
                 'status' => ['type' => 'string'],
@@ -260,7 +261,7 @@ final class OpenApiDocumentFactory
             'BenchmarkRunList' => $this->listOf('BenchmarkRun'),
             'StartBenchmarkRunResponse' => $this->object([
                 'benchmarkRunId' => ['type' => 'string'],
-                'templateId' => ['type' => 'string'],
+                'templateId' => ['type' => ['string', 'null']],
                 'ownerId' => ['type' => 'string'],
                 'status' => ['type' => 'string'],
                 'iterationsN' => ['type' => 'integer'],
@@ -271,7 +272,13 @@ final class OpenApiDocumentFactory
                 'status' => ['type' => 'string'],
                 'finishedAt' => ['type' => 'string', 'format' => 'date-time'],
             ], ['benchmarkRunId', 'status', 'finishedAt']),
-            'StartBenchmarkRunRequest' => $this->object(['templateId' => ['type' => 'string'], 'context' => ['type' => 'object', 'additionalProperties' => true], 'iterationsN' => ['type' => 'integer']], ['templateId', 'context', 'iterationsN']),
+            'StartBenchmarkRunRequest' => $this->object([
+                'templateId' => ['type' => ['string', 'null']],
+                'engineType' => ['type' => ['string', 'null']],
+                'templateBody' => ['type' => ['string', 'null']],
+                'context' => ['type' => 'object', 'additionalProperties' => true],
+                'iterationsN' => ['type' => 'integer'],
+            ], ['context', 'iterationsN']),
             'CompleteBenchmarkRunSuccessRequest' => $this->object([
                 'samplesMs' => ['type' => 'array', 'items' => ['type' => 'number']],
                 'avgMs' => ['type' => 'number'],

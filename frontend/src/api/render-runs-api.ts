@@ -1,12 +1,12 @@
 import type { RenderRun } from '@/types'
 import { http } from './http-client'
 import { ENDPOINTS } from './endpoints'
-import { createTemplate } from './templates-api'
 
 interface BackendBenchmarkRunView {
   benchmarkRunId: string
-  templateId: string
+  templateId: string | null
   engineType: string
+  templateBodySnapshot: string
   iterationsN: number
   startedAt: string
   finishedAt: string | null
@@ -20,10 +20,10 @@ interface BackendBenchmarkRunView {
 
 interface StartBenchmarkRunResponse {
   benchmarkRunId: string
+  templateId: string | null
 }
 
 export interface SaveBenchmarkRunData {
-  name: string
   engineId: string
   code: string
   context: Record<string, unknown>
@@ -66,7 +66,7 @@ function summary(samples: number[]) {
 function fromBackend(view: BackendBenchmarkRunView): RenderRun {
   return {
     id: view.benchmarkRunId,
-    templateId: view.templateId,
+    templateId: view.templateId ?? undefined,
     engineId: view.engineType,
     status: view.status,
     iterations: view.iterationsN,
@@ -87,14 +87,9 @@ export async function getRuns(): Promise<RenderRun[]> {
 export async function saveRun(data: SaveBenchmarkRunData): Promise<RenderRun> {
   const iterations = Math.max(1, Math.min(10000, data.iterations || 1))
   const samples = summary(normalizeSamples(data.samplesMs, iterations))
-  const template = await createTemplate({
-    name: data.name,
-    engineId: data.engineId,
-    code: data.code,
-    isPublic: false,
-  })
   const started = await http.post<StartBenchmarkRunResponse>(ENDPOINTS.benchmarkRuns.create, {
-    templateId: template.id,
+    engineType: data.engineId,
+    templateBody: data.code,
     context: data.context,
     iterationsN: iterations,
   })
@@ -109,7 +104,7 @@ export async function saveRun(data: SaveBenchmarkRunData): Promise<RenderRun> {
 
   return {
     id: started.benchmarkRunId,
-    templateId: template.id,
+    templateId: started.templateId ?? undefined,
     engineId: data.engineId,
     status: 'success',
     iterations,

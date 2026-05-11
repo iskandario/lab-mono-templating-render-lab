@@ -9,7 +9,9 @@ COPY . .
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
  && php composer-setup.php --install-dir=/usr/local/bin --filename=composer \
  && rm composer-setup.php \
- && composer install --no-dev --no-interaction --optimize-autoloader
+ && composer install --no-dev --no-interaction --optimize-autoloader \
+ && chmod +x docker-entrypoint.sh
 
 EXPOSE 8000
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["php", "-S", "0.0.0.0:8000", "-t", "public", "public/index.php"]

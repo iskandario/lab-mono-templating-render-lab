@@ -47,8 +47,9 @@ final readonly class BenchmarkRunView
     public function __construct(
         public string $benchmarkRunId,
         public string $ownerId,
-        public string $templateId,
+        public ?string $templateId,
         public string $engineType,
+        public string $templateBodySnapshot,
         public array $contextJson,
         public int $iterationsN,
         public string $startedAt,
@@ -75,6 +76,7 @@ final readonly class BenchmarkRunView
             'ownerId' => $this->ownerId,
             'templateId' => $this->templateId,
             'engineType' => $this->engineType,
+            'templateBodySnapshot' => $this->templateBodySnapshot,
             'context' => $this->contextJson,
             'iterationsN' => $this->iterationsN,
             'startedAt' => $this->startedAt,

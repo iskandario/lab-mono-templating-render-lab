@@ -2,6 +2,7 @@
 export const ENDPOINTS = {
   auth: {
     login: '/sessions',
+    current: '/sessions/current',
     register: '/users',
     logout: '/sessions/current',
     forgotPassword: '/auth/forgot-password', // not in backend yet

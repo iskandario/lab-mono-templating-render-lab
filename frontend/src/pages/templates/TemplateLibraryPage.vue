@@ -129,17 +129,22 @@ function showSnackbar(msg: string) {
       <div class="text-subtitle-1 font-weight-medium mb-3">Быстрый старт</div>
       <v-row dense>
         <v-col v-for="preset in QUICK_START_PRESETS" :key="preset.engineId" cols="12" sm="4">
-          <v-card variant="outlined" class="h-100">
-            <v-card-title class="d-flex align-center gap-2 pt-3 pb-1 text-body-1 font-weight-medium">
-              {{ preset.name }}
-              <v-chip size="x-small" :color="engineColor(preset.engineId)" variant="tonal" class="ml-auto text-uppercase">
+          <v-card variant="outlined" class="quick-start-card h-100">
+            <v-card-title class="quick-start-title pt-3 pb-1 text-body-1 font-weight-medium">
+              <span class="quick-start-name">{{ preset.name }}</span>
+              <v-chip
+                size="x-small"
+                :color="engineColor(preset.engineId)"
+                variant="tonal"
+                class="quick-start-engine-chip text-uppercase"
+              >
                 {{ preset.engineId }}
               </v-chip>
             </v-card-title>
             <v-card-text class="text-body-2 text-medium-emphasis pb-2">
               {{ preset.description }}
             </v-card-text>
-            <v-card-actions>
+            <v-card-actions class="quick-start-actions">
               <v-btn size="small" variant="tonal" color="primary" @click="loadPreset(preset)">
                 Открыть в Sandbox
               </v-btn>
@@ -210,5 +215,41 @@ function showSnackbar(msg: string) {
   min-width: 220px;
   flex: 1 1 220px;
   max-width: 360px;
+}
+
+.quick-start-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.quick-start-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: start;
+  column-gap: 8px;
+  min-width: 0;
+  overflow: visible;
+  white-space: normal;
+}
+
+.quick-start-name {
+  min-width: 0;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.quick-start-engine-chip {
+  justify-self: end;
+  max-width: 100%;
+}
+
+.quick-start-engine-chip :deep(.v-chip__content) {
+  min-width: 0;
+  overflow: visible;
+  white-space: nowrap;
+}
+
+.quick-start-actions {
+  margin-top: auto;
 }
 </style>

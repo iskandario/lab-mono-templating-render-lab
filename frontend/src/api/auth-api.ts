@@ -31,7 +31,14 @@ export async function changePassword(oldPassword: string, newPassword: string): 
   return http.post<void>(ENDPOINTS.auth.changePassword, { oldPassword, newPassword })
 }
 
-// No /me endpoint in backend — rely on stored auth state from login/register
 export async function getMe(): Promise<User | null> {
-  return null
+  try {
+    const result = await http.get<{ userId: string; email: string }>(
+      ENDPOINTS.auth.current,
+      { redirectOnUnauthorized: false },
+    )
+    return { id: result.userId, email: result.email }
+  } catch {
+    return null
+  }
 }
