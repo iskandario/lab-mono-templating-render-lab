@@ -7,7 +7,9 @@ use infrastructure\bootstrap\PostgresServiceContainer;
 use infrastructure\presentation\http\HttpKernel;
 use infrastructure\presentation\http\RequestFactory;
 use infrastructure\presentation\http\ResponseEmitter;
+use infrastructure\presentation\http\SessionAuthenticator;
 use infrastructure\presentation\http\route\Router;
+use infrastructure\support\SystemClock;
 
 $autoloadPath = __DIR__ . '/../vendor/autoload.php';
 if (!is_file($autoloadPath)) {
@@ -18,6 +20,21 @@ if (!is_file($autoloadPath)) {
 }
 
 require $autoloadPath;
+
+// CORS — allow configured origin(s) with credentials
+$corsOrigins = array_filter(explode(',', getenv('CORS_ORIGINS') ?: 'http://localhost:5173'));
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+if ($origin && in_array($origin, $corsOrigins, true)) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+    header('Vary: Origin');
+}
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
 $requiredEnvKeys = [
     'POSTGRES_DB',
@@ -38,15 +55,38 @@ foreach ($requiredEnvKeys as $key) {
     $env[$key] = $value;
 }
 
-foreach (['POSTGRES_HOST', 'POSTGRES_PORT', 'POSTGRES_SSLMODE', 'SESSION_TTL_SPEC'] as $optionalKey) {
+foreach ([
+    'POSTGRES_HOST',
+    'POSTGRES_PORT',
+    'POSTGRES_SSLMODE',
+    'SESSION_TTL_SPEC',
+    'JWT_SECRET',
+    'PASSWORD_PEPPER',
+    'PASSWORD_WORK_FACTOR',
+    'COOKIE_NAME',
+    'COOKIE_PATH',
+    'COOKIE_HTTPONLY',
+    'COOKIE_SECURE',
+    'COOKIE_SAMESITE',
+    'SESSION_COOKIE_SECURE',
+] as $optionalKey) {
     $value = getenv($optionalKey);
     if ($value !== false) {
         $env[$optionalKey] = $value;
     }
 }
 
-$container = new PostgresServiceContainer(PostgresConfig::fromEnv($env));
-$kernel = new HttpKernel(new Router($container->commandRoutes()));
+$config = PostgresConfig::fromEnv($env);
+$container = new PostgresServiceContainer($config);
+$kernel = new HttpKernel(
+    new Router($container->commandRoutes()),
+    new SessionAuthenticator(
+        $container->authSessionRepository(),
+        new SystemClock(),
+        $container->jwtSessionTokenProcessor(),
+        $config->cookieName
+    )
+);
 $request = (new RequestFactory())->fromGlobals($_SERVER, $_COOKIE);
 
 (new ResponseEmitter())->emit($kernel->handle($request));

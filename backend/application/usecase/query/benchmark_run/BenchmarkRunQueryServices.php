@@ -54,6 +54,7 @@ final class BenchmarkRunViewFactory
             ownerId: $benchmarkRun->ownerId,
             templateId: $benchmarkRun->templateId,
             engineType: $benchmarkRun->engineType,
+            templateBodySnapshot: $benchmarkRun->templateBodySnapshot,
             contextJson: $benchmarkRun->contextJson,
             iterationsN: $benchmarkRun->iterationsN,
             startedAt: IsoDateTime::format($benchmarkRun->startedAt),

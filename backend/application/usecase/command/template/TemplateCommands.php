@@ -10,7 +10,8 @@ final readonly class RegisterTemplateCommand
         public string $actorId,
         public string $name,
         public string $engineType,
-        public string $templateBody
+        public string $templateBody,
+        public bool $isPublic = false
     ) {
     }
 }
@@ -21,6 +22,16 @@ final readonly class UpdateTemplateBodyCommand
         public string $actorId,
         public string $templateId,
         public string $templateBody
+    ) {
+    }
+}
+
+final readonly class UpdateTemplatePublicityCommand
+{
+    public function __construct(
+        public string $actorId,
+        public string $templateId,
+        public bool $isPublic
     ) {
     }
 }

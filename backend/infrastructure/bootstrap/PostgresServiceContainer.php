@@ -30,6 +30,8 @@ use application\usecase\command\template\RegisterTemplateUseCase;
 use application\usecase\command\template\RegisterTemplateUseCaseInterface;
 use application\usecase\command\template\UpdateTemplateBodyUseCase;
 use application\usecase\command\template\UpdateTemplateBodyUseCaseInterface;
+use application\usecase\command\template\UpdateTemplatePublicityUseCase;
+use application\usecase\command\template\UpdateTemplatePublicityUseCaseInterface;
 use application\usecase\query\benchmark_run\GetBenchmarkRunUseCase;
 use application\usecase\query\benchmark_run\GetBenchmarkRunUseCaseInterface;
 use application\usecase\query\benchmark_run\ListBenchmarkRunsUseCase;
@@ -44,6 +46,8 @@ use application\usecase\query\template\GetTemplateStatsUseCase;
 use application\usecase\query\template\GetTemplateStatsUseCaseInterface;
 use application\usecase\query\template\GetTemplateUseCase;
 use application\usecase\query\template\GetTemplateUseCaseInterface;
+use application\usecase\query\template\ListPublicTemplatesUseCase;
+use application\usecase\query\template\ListPublicTemplatesUseCaseInterface;
 use application\usecase\query\template\ListTemplatesUseCase;
 use application\usecase\query\template\ListTemplatesUseCaseInterface;
 use domain\account\repository\AuthSessionRepositoryInterface;
@@ -56,28 +60,39 @@ use infrastructure\presentation\http\controller\CompleteBenchmarkRunFailureContr
 use infrastructure\presentation\http\controller\CompleteBenchmarkRunSuccessController;
 use infrastructure\presentation\http\controller\CompleteRenderRunFailureController;
 use infrastructure\presentation\http\controller\CompleteRenderRunSuccessController;
+use infrastructure\presentation\http\controller\CurrentSessionController;
 use infrastructure\presentation\http\controller\DeactivateTemplateController;
 use infrastructure\presentation\http\controller\GetBenchmarkRunController;
 use infrastructure\presentation\http\controller\GetRecentFailuresController;
 use infrastructure\presentation\http\controller\GetRenderRunController;
+use infrastructure\presentation\http\controller\GetStateController;
 use infrastructure\presentation\http\controller\GetTemplateController;
 use infrastructure\presentation\http\controller\GetTemplateStatsController;
 use infrastructure\presentation\http\controller\LoginUserController;
 use infrastructure\presentation\http\controller\ListBenchmarkRunsController;
+use infrastructure\presentation\http\controller\ListPublicTemplatesController;
 use infrastructure\presentation\http\controller\ListRenderRunsController;
 use infrastructure\presentation\http\controller\ListTemplatesController;
 use infrastructure\presentation\http\controller\LogoutUserController;
+use infrastructure\presentation\http\controller\OpenApiJsonController;
 use infrastructure\presentation\http\controller\RegisterTemplateController;
 use infrastructure\presentation\http\controller\RegisterUserController;
+use infrastructure\presentation\http\controller\SaveStateController;
 use infrastructure\presentation\http\controller\StartBenchmarkRunController;
 use infrastructure\presentation\http\controller\StartRenderRunController;
+use infrastructure\presentation\http\controller\SwaggerUiController;
 use infrastructure\presentation\http\controller\UpdateTemplateBodyController;
+use infrastructure\presentation\http\controller\UpdateTemplatePublicityController;
+use infrastructure\presentation\http\JwtSessionTokenProcessor;
+use infrastructure\presentation\http\SessionCookieFactory;
+use infrastructure\presentation\http\openapi\OpenApiDocumentFactory;
 use infrastructure\presentation\http\route\CommandRoutes;
 use infrastructure\repository\postgres\PostgresAuthSessionRepository;
 use infrastructure\repository\postgres\PostgresBenchmarkRunRepository;
 use infrastructure\repository\postgres\PostgresConnectionFactory;
 use infrastructure\repository\postgres\PostgresPasswordResetTokenRepository;
 use infrastructure\repository\postgres\PostgresRenderRunRepository;
+use infrastructure\repository\postgres\PostgresSharedStateRepository;
 use infrastructure\repository\postgres\PostgresTemplateRepository;
 use infrastructure\repository\postgres\PostgresUserRepository;
 use infrastructure\support\NativePasswordHasher;
@@ -101,9 +116,11 @@ final class PostgresServiceContainer
         return match ($className) {
             RegisterTemplateController::class => $this->get(RegisterTemplateController::class, fn () => new RegisterTemplateController($this->registerTemplateUseCase())),
             ListTemplatesController::class => $this->get(ListTemplatesController::class, fn () => new ListTemplatesController($this->listTemplatesUseCase())),
+            ListPublicTemplatesController::class => $this->get(ListPublicTemplatesController::class, fn () => new ListPublicTemplatesController($this->listPublicTemplatesUseCase())),
             GetTemplateController::class => $this->get(GetTemplateController::class, fn () => new GetTemplateController($this->getTemplateUseCase())),
             GetTemplateStatsController::class => $this->get(GetTemplateStatsController::class, fn () => new GetTemplateStatsController($this->getTemplateStatsUseCase())),
             UpdateTemplateBodyController::class => $this->get(UpdateTemplateBodyController::class, fn () => new UpdateTemplateBodyController($this->updateTemplateBodyUseCase())),
+            UpdateTemplatePublicityController::class => $this->get(UpdateTemplatePublicityController::class, fn () => new UpdateTemplatePublicityController($this->updateTemplatePublicityUseCase())),
             DeactivateTemplateController::class => $this->get(DeactivateTemplateController::class, fn () => new DeactivateTemplateController($this->deactivateTemplateUseCase())),
             ListRenderRunsController::class => $this->get(ListRenderRunsController::class, fn () => new ListRenderRunsController($this->listRenderRunsUseCase())),
             StartRenderRunController::class => $this->get(StartRenderRunController::class, fn () => new StartRenderRunController($this->startRenderRunUseCase())),
@@ -116,9 +133,14 @@ final class PostgresServiceContainer
             GetBenchmarkRunController::class => $this->get(GetBenchmarkRunController::class, fn () => new GetBenchmarkRunController($this->getBenchmarkRunUseCase())),
             CompleteBenchmarkRunSuccessController::class => $this->get(CompleteBenchmarkRunSuccessController::class, fn () => new CompleteBenchmarkRunSuccessController($this->completeBenchmarkRunSuccessUseCase())),
             CompleteBenchmarkRunFailureController::class => $this->get(CompleteBenchmarkRunFailureController::class, fn () => new CompleteBenchmarkRunFailureController($this->completeBenchmarkRunFailureUseCase())),
+            SaveStateController::class => $this->get(SaveStateController::class, fn () => new SaveStateController($this->sharedStateRepository(), $this->idGenerator(), $this->clock())),
+            GetStateController::class => $this->get(GetStateController::class, fn () => new GetStateController($this->sharedStateRepository())),
             RegisterUserController::class => $this->get(RegisterUserController::class, fn () => new RegisterUserController($this->registerUserUseCase())),
-            LoginUserController::class => $this->get(LoginUserController::class, fn () => new LoginUserController($this->loginUserUseCase())),
-            LogoutUserController::class => $this->get(LogoutUserController::class, fn () => new LogoutUserController($this->logoutUserUseCase())),
+            LoginUserController::class => $this->get(LoginUserController::class, fn () => new LoginUserController($this->loginUserUseCase(), $this->sessionCookieFactory(), $this->jwtSessionTokenProcessor())),
+            CurrentSessionController::class => $this->get(CurrentSessionController::class, fn () => new CurrentSessionController($this->userRepository())),
+            LogoutUserController::class => $this->get(LogoutUserController::class, fn () => new LogoutUserController($this->logoutUserUseCase(), $this->sessionCookieFactory())),
+            OpenApiJsonController::class => $this->get(OpenApiJsonController::class, fn () => new OpenApiJsonController(new OpenApiDocumentFactory(CommandRoutes::controllerClasses()))),
+            SwaggerUiController::class => $this->get(SwaggerUiController::class, fn () => new SwaggerUiController()),
             default => throw new \InvalidArgumentException('Unknown controller: ' . $className),
         };
     }
@@ -164,6 +186,13 @@ final class PostgresServiceContainer
         ));
     }
 
+    public function listPublicTemplatesUseCase(): ListPublicTemplatesUseCaseInterface
+    {
+        return $this->get(ListPublicTemplatesUseCaseInterface::class, fn () => new ListPublicTemplatesUseCase(
+            $this->templateRepository()
+        ));
+    }
+
     public function getTemplateStatsUseCase(): GetTemplateStatsUseCaseInterface
     {
         return $this->get(GetTemplateStatsUseCaseInterface::class, fn () => new GetTemplateStatsUseCase(
@@ -175,6 +204,14 @@ final class PostgresServiceContainer
     public function updateTemplateBodyUseCase(): UpdateTemplateBodyUseCaseInterface
     {
         return $this->get(UpdateTemplateBodyUseCaseInterface::class, fn () => new UpdateTemplateBodyUseCase(
+            $this->templateRepository(),
+            $this->clock()
+        ));
+    }
+
+    public function updateTemplatePublicityUseCase(): UpdateTemplatePublicityUseCaseInterface
+    {
+        return $this->get(UpdateTemplatePublicityUseCaseInterface::class, fn () => new UpdateTemplatePublicityUseCase(
             $this->templateRepository(),
             $this->clock()
         ));
@@ -335,6 +372,11 @@ final class PostgresServiceContainer
         return $this->get(PasswordResetTokenRepositoryInterface::class, fn () => new PostgresPasswordResetTokenRepository($this->connection()));
     }
 
+    public function sharedStateRepository(): PostgresSharedStateRepository
+    {
+        return $this->get(PostgresSharedStateRepository::class, fn () => new PostgresSharedStateRepository($this->connection()));
+    }
+
     private function connection(): PDO
     {
         return $this->get(PDO::class, fn () => PostgresConnectionFactory::create([
@@ -359,12 +401,31 @@ final class PostgresServiceContainer
 
     private function passwordHasher(): NativePasswordHasher
     {
-        return $this->get(NativePasswordHasher::class, fn () => new NativePasswordHasher());
+        return $this->get(NativePasswordHasher::class, fn () => new NativePasswordHasher(
+            pepper: $this->config->passwordPepper,
+            workFactor: $this->config->passwordWorkFactor
+        ));
     }
 
     private function sessionTtl(): DateInterval
     {
         return $this->get(DateInterval::class, fn () => new DateInterval($this->config->sessionTtlSpec));
+    }
+
+    private function sessionCookieFactory(): SessionCookieFactory
+    {
+        return $this->get(SessionCookieFactory::class, fn () => new SessionCookieFactory(
+            name: $this->config->cookieName,
+            path: $this->config->cookiePath,
+            httpOnly: $this->config->cookieHttpOnly,
+            secure: $this->config->cookieSecure,
+            sameSite: $this->config->cookieSameSite
+        ));
+    }
+
+    public function jwtSessionTokenProcessor(): JwtSessionTokenProcessor
+    {
+        return $this->get(JwtSessionTokenProcessor::class, fn () => new JwtSessionTokenProcessor($this->config->jwtSecret));
     }
 
     /**

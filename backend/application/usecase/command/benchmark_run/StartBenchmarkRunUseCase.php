@@ -10,6 +10,7 @@ use application\usecase\exception\ResourceNotFoundException;
 use application\usecase\support\IsoDateTime;
 use domain\benchmark_run\model\BenchmarkRun;
 use domain\benchmark_run\repository\BenchmarkRunRepositoryInterface;
+use domain\common\exception\ValidationException;
 use domain\template\exception\TemplateInactiveException;
 use domain\template\repository\TemplateRepositoryInterface;
 
@@ -25,20 +26,37 @@ final class StartBenchmarkRunUseCase implements StartBenchmarkRunUseCaseInterfac
 
     public function execute(StartBenchmarkRunCommand $command): StartBenchmarkRunResult
     {
-        $template = $this->templateRepository->getByIdForOwner($command->templateId, $command->actorId);
-        if ($template === null) {
-            throw new ResourceNotFoundException('template.not_found: ' . $command->templateId);
-        }
+        $templateId = $command->templateId !== null ? trim($command->templateId) : '';
+        if ($templateId !== '') {
+            $template = $this->templateRepository->getByIdForOwner($templateId, $command->actorId);
+            if ($template === null) {
+                throw new ResourceNotFoundException('template.not_found: ' . $templateId);
+            }
 
-        if (!$template->isActive) {
-            throw new TemplateInactiveException($template->templateId);
+            if (!$template->isActive) {
+                throw new TemplateInactiveException($template->templateId);
+            }
+
+            $ownerId = $template->ownerId;
+            $engineType = $template->engineType;
+            $templateBodySnapshot = $template->templateBody;
+            $templateId = $template->templateId;
+        } else {
+            $ownerId = $command->actorId;
+            $engineType = trim((string)$command->engineType);
+            $templateBodySnapshot = trim((string)$command->templateBody);
+            $templateId = null;
+            if ($engineType === '' || $templateBodySnapshot === '') {
+                throw new ValidationException('benchmark_run.snapshot.invalid', 4620);
+            }
         }
 
         $benchmarkRun = BenchmarkRun::start(
             benchmarkRunId: $this->idGenerator->generate(),
-            ownerId: $template->ownerId,
-            templateId: $template->templateId,
-            engineType: $template->engineType,
+            ownerId: $ownerId,
+            templateId: $templateId,
+            engineType: $engineType,
+            templateBodySnapshot: $templateBodySnapshot,
             contextJson: $command->contextJson,
             iterationsN: $command->iterationsN,
             startedAt: $this->clock->now()

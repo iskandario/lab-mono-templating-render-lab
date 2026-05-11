@@ -10,10 +10,14 @@ use application\usecase\command\benchmark_run\CompleteBenchmarkRunSuccessCommand
 use application\usecase\command\benchmark_run\CompleteBenchmarkRunSuccessUseCaseInterface;
 use application\usecase\command\benchmark_run\StartBenchmarkRunCommand;
 use application\usecase\command\benchmark_run\StartBenchmarkRunUseCaseInterface;
+use infrastructure\presentation\http\attribute\OpenApi;
+use infrastructure\presentation\http\attribute\Route;
 use infrastructure\presentation\http\HttpRequest;
 use infrastructure\presentation\http\HttpResponse;
 use infrastructure\presentation\http\JsonResponse;
 
+#[Route('POST', '/benchmark-runs')]
+#[OpenApi('Start benchmark run', ['Benchmark runs'], requestBody: 'StartBenchmarkRunRequest', response: 'StartBenchmarkRunResponse', responseStatus: 201)]
 final class StartBenchmarkRunController extends AbstractJsonController
 {
     public function __construct(
@@ -27,7 +31,9 @@ final class StartBenchmarkRunController extends AbstractJsonController
         $payload = $this->body($request);
         $result = $this->useCase->execute(new StartBenchmarkRunCommand(
             actorId: $this->requireActorId($request),
-            templateId: $this->requireString($payload, 'templateId'),
+            templateId: $this->optionalString($payload, 'templateId'),
+            engineType: $this->optionalString($payload, 'engineType'),
+            templateBody: $this->optionalString($payload, 'templateBody'),
             contextJson: $this->requireArray($payload, 'context'),
             iterationsN: $this->requireInt($payload, 'iterationsN')
         ));
@@ -36,6 +42,8 @@ final class StartBenchmarkRunController extends AbstractJsonController
     }
 }
 
+#[Route('POST', '/benchmark-runs/{benchmarkRunId}/success')]
+#[OpenApi('Complete benchmark run successfully', ['Benchmark runs'], requestBody: 'CompleteBenchmarkRunSuccessRequest', response: 'CompleteBenchmarkRunResponse')]
 final class CompleteBenchmarkRunSuccessController extends AbstractJsonController
 {
     public function __construct(
@@ -52,9 +60,9 @@ final class CompleteBenchmarkRunSuccessController extends AbstractJsonController
             benchmarkRunId: $this->requireRouteParam($request, 'benchmarkRunId'),
             samplesMs: $this->requireSamples($payload),
             avgMs: $this->requireFloat($payload, 'avgMs'),
-            minMs: $this->requireInt($payload, 'minMs'),
-            maxMs: $this->requireInt($payload, 'maxMs'),
-            p95Ms: $this->requireInt($payload, 'p95Ms'),
+            minMs: $this->requireFloat($payload, 'minMs'),
+            maxMs: $this->requireFloat($payload, 'maxMs'),
+            p95Ms: $this->requireFloat($payload, 'p95Ms'),
             outputBytes: $this->optionalInt($payload, 'outputBytes')
         ));
 
@@ -63,24 +71,28 @@ final class CompleteBenchmarkRunSuccessController extends AbstractJsonController
 
     /**
      * @param array<string, mixed> $payload
-     * @return int[]
+     * @return float[]
      */
     private function requireSamples(array $payload): array
     {
         $samples = $this->requireArray($payload, 'samplesMs');
+        $normalized = [];
         foreach ($samples as $sample) {
-            if (!is_int($sample)) {
+            if (!is_int($sample) && !is_float($sample)) {
                 throw new \infrastructure\presentation\http\exception\BadRequestHttpException(
-                    'request.field.invalid_int_array',
+                    'request.field.invalid_number_array',
                     ['field' => 'samplesMs']
                 );
             }
+            $normalized[] = (float)$sample;
         }
 
-        return $samples;
+        return $normalized;
     }
 }
 
+#[Route('POST', '/benchmark-runs/{benchmarkRunId}/failure')]
+#[OpenApi('Complete benchmark run with failure', ['Benchmark runs'], requestBody: 'CompleteBenchmarkRunFailureRequest', response: 'CompleteBenchmarkRunResponse')]
 final class CompleteBenchmarkRunFailureController extends AbstractJsonController
 {
     public function __construct(

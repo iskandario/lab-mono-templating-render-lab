@@ -64,9 +64,9 @@ CREATE TABLE IF NOT EXISTS benchmark_runs (
     status TEXT NOT NULL,
     samples_ms JSONB NOT NULL DEFAULT '[]'::jsonb,
     avg_ms DOUBLE PRECISION NULL,
-    min_ms INTEGER NULL,
-    max_ms INTEGER NULL,
-    p95_ms INTEGER NULL,
+    min_ms DOUBLE PRECISION NULL,
+    max_ms DOUBLE PRECISION NULL,
+    p95_ms DOUBLE PRECISION NULL,
     output_bytes INTEGER NULL,
     error_code TEXT NULL,
     error_message TEXT NULL

@@ -25,7 +25,7 @@ final readonly class StartBenchmarkRunResult implements CommandResultInterface
 {
     public function __construct(
         public string $benchmarkRunId,
-        public string $templateId,
+        public ?string $templateId,
         public string $ownerId,
         public string $status,
         public int $iterationsN,

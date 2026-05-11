@@ -2,9 +2,36 @@
 import { useAuthStore } from '@/stores/auth-store'
 import router from '@/router'
 
-const getBaseUrl = () => import.meta.env.VITE_API_URL ?? ''
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1'])
+const withoutTrailingSlash = (value: string) => value.replace(/\/$/, '')
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+interface RequestOptions {
+  redirectOnUnauthorized?: boolean
+}
+
+function getBaseUrl() {
+  const configured = import.meta.env.VITE_API_URL ?? ''
+  if (!configured) return ''
+
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    try {
+      const apiUrl = new URL(configured, window.location.origin)
+      if (LOCAL_HOSTS.has(apiUrl.hostname)) {
+        apiUrl.hostname = window.location.hostname
+        return withoutTrailingSlash(apiUrl.toString())
+      }
+    } catch {
+    }
+  }
+
+  return withoutTrailingSlash(configured)
+}
+
+async function request<T>(
+  path: string,
+  init?: RequestInit,
+  options: RequestOptions = {},
+): Promise<T> {
   const res = await fetch(`${getBaseUrl()}${path}`, {
     ...init,
     credentials: 'include',
@@ -12,8 +39,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   })
 
   if (res.status === 401) {
-    useAuthStore().logout()
-    router.push('/login')
+    useAuthStore().clearSession()
+    if (options.redirectOnUnauthorized !== false) {
+      router.push('/login')
+    }
     throw new Error('Unauthorized')
   }
 
@@ -22,11 +51,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(text || `HTTP ${res.status}`)
   }
 
+  if (res.status === 204) return undefined as T
   return res.json() as Promise<T>
 }
 
 export const http = {
-  get: <T>(path: string) => request<T>(path),
+  get: <T>(path: string, options?: RequestOptions) => request<T>(path, undefined, options),
   post: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
   put: <T>(path: string, body: unknown) =>

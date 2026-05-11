@@ -15,8 +15,9 @@ class BenchmarkRun
     public function __construct(
         public string $benchmarkRunId,
         public string $ownerId,
-        public string $templateId,
+        public ?string $templateId,
         public string $engineType,
+        public string $templateBodySnapshot,
         public array $contextJson,
         public int $iterationsN,
         public DateTimeImmutable $startedAt,
@@ -24,17 +25,18 @@ class BenchmarkRun
         public string $status = BenchmarkStatus::IN_PROGRESS,
         public array $samplesMs = [],
         public ?float $avgMs = null,
-        public ?int $minMs = null,
-        public ?int $maxMs = null,
-        public ?int $p95Ms = null,
+        public ?float $minMs = null,
+        public ?float $maxMs = null,
+        public ?float $p95Ms = null,
         public ?int $outputBytes = null,
         public ?string $errorCode = null,
         public ?string $errorMessage = null
     ) {
         $this->benchmarkRunId = trim($this->benchmarkRunId);
         $this->ownerId = trim($this->ownerId);
-        $this->templateId = trim($this->templateId);
+        $this->templateId = $this->templateId !== null ? trim($this->templateId) : null;
         $this->engineType = EngineType::from($this->engineType)->value();
+        $this->templateBodySnapshot = trim($this->templateBodySnapshot);
         $this->status = BenchmarkStatus::from($this->status)->value();
 
         $this->assertIdentity();
@@ -48,8 +50,9 @@ class BenchmarkRun
     public static function start(
         string $benchmarkRunId,
         string $ownerId,
-        string $templateId,
+        ?string $templateId,
         string $engineType,
+        string $templateBodySnapshot,
         array $contextJson,
         int $iterationsN,
         DateTimeImmutable $startedAt
@@ -59,6 +62,7 @@ class BenchmarkRun
             ownerId: $ownerId,
             templateId: $templateId,
             engineType: $engineType,
+            templateBodySnapshot: $templateBodySnapshot,
             contextJson: $contextJson,
             iterationsN: $iterationsN,
             startedAt: $startedAt
@@ -69,9 +73,9 @@ class BenchmarkRun
         DateTimeImmutable $finishedAt,
         array $samplesMs,
         float $avgMs,
-        int $minMs,
-        int $maxMs,
-        int $p95Ms,
+        float $minMs,
+        float $maxMs,
+        float $p95Ms,
         ?int $outputBytes = null
     ): void {
         $this->assertNotFinished();
@@ -145,7 +149,11 @@ class BenchmarkRun
         }
 
         if ($this->templateId === '') {
-            throw new ValidationException('benchmark_run.template_id.empty: ' . $this->benchmarkRunId, 4606);
+            $this->templateId = null;
+        }
+
+        if ($this->templateBodySnapshot === '') {
+            throw new ValidationException('benchmark_run.template_body_snapshot.empty: ' . $this->benchmarkRunId, 4606);
         }
     }
 
@@ -210,21 +218,21 @@ class BenchmarkRun
     {
         $normalized = [];
         foreach ($samples as $sample) {
-            if (!is_int($sample)) {
-                throw new ValidationException('benchmark_run.sample.not_int: ' . $benchmarkRunId, 4612);
+            if (!is_int($sample) && !is_float($sample)) {
+                throw new ValidationException('benchmark_run.sample.not_number: ' . $benchmarkRunId, 4612);
             }
 
             if ($sample < 0) {
                 throw new ValidationException('benchmark_run.sample.negative: ' . $benchmarkRunId, 4613);
             }
 
-            $normalized[] = $sample;
+            $normalized[] = (float)$sample;
         }
 
         return $normalized;
     }
 
-    private function assertSummary(float $avgMs, int $minMs, int $maxMs, int $p95Ms): void
+    private function assertSummary(float $avgMs, float $minMs, float $maxMs, float $p95Ms): void
     {
         if ($avgMs < 0) {
             throw new ValidationException('benchmark_run.avg.negative: ' . $this->benchmarkRunId, 4614);

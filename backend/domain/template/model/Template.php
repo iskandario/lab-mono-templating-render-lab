@@ -21,6 +21,7 @@ class Template
         public string $templateBody,
         public DateTimeImmutable $createdAt,
         public DateTimeImmutable $updatedAt,
+        public bool $isPublic = false,
         public bool $isActive = true
     ) {
         $this->templateId = trim($this->templateId);
@@ -56,7 +57,8 @@ class Template
         string $name,
         string $engineType,
         string $templateBody,
-        DateTimeImmutable $createdAt
+        DateTimeImmutable $createdAt,
+        bool $isPublic = false
     ): self {
         return new self(
             templateId: $templateId,
@@ -66,6 +68,7 @@ class Template
             templateBody: $templateBody,
             createdAt: $createdAt,
             updatedAt: $createdAt,
+            isPublic: $isPublic,
             isActive: true
         );
     }
@@ -105,6 +108,22 @@ class Template
         }
 
         $this->templateBody = $templateBody;
+        $this->updatedAt = $updatedAt;
+    }
+
+    public function updatePublicity(string $actorId, bool $isPublic, DateTimeImmutable $updatedAt): void
+    {
+        $this->assertOwner($actorId);
+
+        if (!$this->isActive) {
+            throw new TemplateInactiveException($this->templateId);
+        }
+
+        if ($updatedAt < $this->updatedAt) {
+            throw new ValidationException('template.updated_at.invalid: ' . $this->templateId, 4204);
+        }
+
+        $this->isPublic = $isPublic;
         $this->updatedAt = $updatedAt;
     }
 
@@ -159,4 +178,3 @@ class Template
         }
     }
 }
-

@@ -31,11 +31,6 @@ abstract class AbstractJsonController
             return trim($actorId);
         }
 
-        $headerActorId = $request->header('x-actor-id');
-        if ($headerActorId !== null && trim($headerActorId) !== '') {
-            return trim($headerActorId);
-        }
-
         throw new UnauthorizedHttpException('auth.actor_id.required');
     }
 
@@ -51,8 +46,8 @@ abstract class AbstractJsonController
 
     protected function requireSessionId(HttpRequest $request): string
     {
-        $sessionId = $request->cookie('session_id');
-        if ($sessionId !== null && trim($sessionId) !== '') {
+        $sessionId = $request->attribute('sessionId');
+        if (is_string($sessionId) && trim($sessionId) !== '') {
             return trim($sessionId);
         }
 
@@ -130,6 +125,36 @@ abstract class AbstractJsonController
 
         if (!is_int($value)) {
             throw new BadRequestHttpException('request.field.invalid_int', ['field' => $field]);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    protected function requireBool(array $payload, string $field): bool
+    {
+        $value = $payload[$field] ?? null;
+        if (!is_bool($value)) {
+            throw new BadRequestHttpException('request.field.invalid_bool', ['field' => $field]);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    protected function optionalBool(array $payload, string $field, bool $default = false): bool
+    {
+        $value = $payload[$field] ?? null;
+        if ($value === null) {
+            return $default;
+        }
+
+        if (!is_bool($value)) {
+            throw new BadRequestHttpException('request.field.invalid_bool', ['field' => $field]);
         }
 
         return $value;

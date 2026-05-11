@@ -47,6 +47,24 @@ final class ListTemplatesUseCase implements ListTemplatesUseCaseInterface
     }
 }
 
+final class ListPublicTemplatesUseCase implements ListPublicTemplatesUseCaseInterface
+{
+    public function __construct(
+        private readonly TemplateRepositoryInterface $templateRepository
+    ) {
+    }
+
+    public function execute(ListPublicTemplatesQuery $query): array
+    {
+        $templates = $this->templateRepository->listPublic($query->filters);
+
+        return array_map(
+            static fn (Template $template): TemplateView => TemplateViewFactory::fromModel($template),
+            $templates
+        );
+    }
+}
+
 final class GetTemplateStatsUseCase implements GetTemplateStatsUseCaseInterface
 {
     public function __construct(
@@ -110,6 +128,7 @@ final class TemplateViewFactory
             name: $template->name,
             engineType: $template->engineType,
             templateBody: $template->templateBody,
+            isPublic: $template->isPublic,
             isActive: $template->isActive,
             createdAt: IsoDateTime::format($template->createdAt),
             updatedAt: IsoDateTime::format($template->updatedAt)

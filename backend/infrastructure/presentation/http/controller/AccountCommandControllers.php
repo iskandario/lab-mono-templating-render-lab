@@ -11,12 +11,19 @@ use application\usecase\command\account\LogoutUserUseCaseInterface;
 use application\usecase\command\account\RegisterUserCommand;
 use application\usecase\command\account\RegisterUserUseCaseInterface;
 use DateTimeImmutable;
+use domain\account\repository\UserRepositoryInterface;
+use infrastructure\presentation\http\attribute\OpenApi;
+use infrastructure\presentation\http\attribute\Route;
 use infrastructure\presentation\http\HttpRequest;
 use infrastructure\presentation\http\HttpResponse;
 use infrastructure\presentation\http\JsonResponse;
+use infrastructure\presentation\http\JwtSessionTokenProcessor;
 use infrastructure\presentation\http\SessionCookieFactory;
 use infrastructure\presentation\http\exception\BadRequestHttpException;
+use infrastructure\presentation\http\exception\UnauthorizedHttpException;
 
+#[Route('POST', '/users')]
+#[OpenApi('Register user', ['Auth'], requestBody: 'RegisterUserRequest', response: 'User', responseStatus: 201, security: [])]
 final class RegisterUserController extends AbstractJsonController
 {
     public function __construct(
@@ -37,11 +44,14 @@ final class RegisterUserController extends AbstractJsonController
     }
 }
 
+#[Route('POST', '/sessions')]
+#[OpenApi('Login user', ['Auth'], requestBody: 'LoginUserRequest', response: 'Session', security: [])]
 final class LoginUserController extends AbstractJsonController
 {
     public function __construct(
         private readonly LoginUserUseCaseInterface $useCase,
-        private readonly SessionCookieFactory $sessionCookieFactory = new SessionCookieFactory()
+        private readonly SessionCookieFactory $sessionCookieFactory = new SessionCookieFactory(),
+        private readonly JwtSessionTokenProcessor $tokenProcessor = new JwtSessionTokenProcessor('dev-only-jwt-secret-change-me-32chars')
     ) {
         parent::__construct();
     }
@@ -64,13 +74,42 @@ final class LoginUserController extends AbstractJsonController
             $result->toArray(),
             [
                 'set-cookie' => [
-                    $this->sessionCookieFactory->issue($result->sessionId, $expiresAt),
+                    $this->sessionCookieFactory->issue(
+                        $this->tokenProcessor->encode($result->sessionId, $expiresAt),
+                        $expiresAt
+                    ),
                 ],
             ]
         );
     }
 }
 
+#[Route('GET', '/sessions/current')]
+#[OpenApi('Get current session user', ['Auth'], response: 'User')]
+final class CurrentSessionController extends AbstractJsonController
+{
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository
+    ) {
+        parent::__construct();
+    }
+
+    public function __invoke(HttpRequest $request): HttpResponse
+    {
+        $user = $this->userRepository->getById($this->requireActorId($request));
+        if ($user === null) {
+            throw new UnauthorizedHttpException('auth.user.not_found');
+        }
+
+        return JsonResponse::ok([
+            'userId' => $user->userId,
+            'email' => $user->email,
+        ]);
+    }
+}
+
+#[Route('DELETE', '/sessions/current')]
+#[OpenApi('Logout current session', ['Auth'], responseStatus: 204)]
 final class LogoutUserController extends AbstractJsonController
 {
     public function __construct(

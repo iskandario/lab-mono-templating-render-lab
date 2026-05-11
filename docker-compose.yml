@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: render_lab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      POSTGRES_DB: render_lab
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_HOST: db
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:4173,http://127.0.0.1:4173}
+      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-change-me-32chars}
+      PASSWORD_PEPPER: ${PASSWORD_PEPPER:-dev-only-password-pepper-change-me-32chars}
+      PASSWORD_WORK_FACTOR: ${PASSWORD_WORK_FACTOR:-11}
+      COOKIE_NAME: ${COOKIE_NAME:-auth_token}
+      COOKIE_PATH: ${COOKIE_PATH:-/}
+      COOKIE_HTTPONLY: ${COOKIE_HTTPONLY:-true}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      COOKIE_SAMESITE: ${COOKIE_SAMESITE:-lax}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "${FRONTEND_HOST_PORT:-4173}:4173"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:

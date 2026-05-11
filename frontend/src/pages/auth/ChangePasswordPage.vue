@@ -1,6 +1,17 @@
+<script setup lang="ts">
+import PageShell from '@/components/common/PageShell.vue'
+</script>
+
 <template>
-  <v-container>
-    <div class="text-h5 font-weight-bold mb-4">Change Password</div>
-    <p class="text-medium-emphasis">Change password page — coming soon.</p>
-  </v-container>
+  <PageShell max-width="720">
+    <template #header>
+      <div class="text-h5 font-weight-bold">Смена пароля</div>
+    </template>
+
+    <p class="text-medium-emphasis">Страница смены пароля — скоро.</p>
+
+    <template #footer>
+      <div>Раздел аккаунта.</div>
+    </template>
+  </PageShell>
 </template>

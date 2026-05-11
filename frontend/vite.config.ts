@@ -5,6 +5,18 @@ import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 import vuetify from 'vite-plugin-vuetify'
 
+// Redirect `assert` imports during dep pre-bundling to the CJS browser shim.
+// pug-code-gen does require('assert') and calls it as a function — the shim must be CJS
+// (module.exports = fn) so Rolldown's CJS consumer gets a callable, not a namespace object.
+const assertRolldownShim: Plugin = {
+  name: 'assert-browser-shim',
+  resolveId(id: string) {
+    if (id === 'assert') {
+      return fileURLToPath(new URL('./src/shims/node-assert-shim.cjs', import.meta.url))
+    }
+  },
+}
+
 function suppressMonacoChunkWarning(): Plugin {
   let onlyMonacoIsLarge = false
   const LIMIT_BYTES = 500 * 1024
@@ -41,13 +53,20 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      // Pug imports these Node built-ins at module load time; redirect to browser-safe stubs.
+      'path': fileURLToPath(new URL('./src/shims/node-path-shim.ts', import.meta.url)),
+      'assert': fileURLToPath(new URL('./src/shims/node-assert-shim.cjs', import.meta.url)),
+      'fs': fileURLToPath(new URL('./src/shims/node-fs-shim.ts', import.meta.url)),
     },
   },
   worker: {
     format: 'es',
   },
   optimizeDeps: {
-    include: ['monaco-editor/esm/vs/editor/editor.worker'],
+    include: ['monaco-editor/esm/vs/editor/editor.worker', 'ejs', 'pug'],
+    rolldownOptions: {
+      plugins: [assertRolldownShim],
+    },
   },
 })

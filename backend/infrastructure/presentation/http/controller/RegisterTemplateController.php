@@ -10,10 +10,16 @@ use application\usecase\command\template\RegisterTemplateCommand;
 use application\usecase\command\template\RegisterTemplateUseCaseInterface;
 use application\usecase\command\template\UpdateTemplateBodyCommand;
 use application\usecase\command\template\UpdateTemplateBodyUseCaseInterface;
+use application\usecase\command\template\UpdateTemplatePublicityCommand;
+use application\usecase\command\template\UpdateTemplatePublicityUseCaseInterface;
+use infrastructure\presentation\http\attribute\OpenApi;
+use infrastructure\presentation\http\attribute\Route;
 use infrastructure\presentation\http\HttpRequest;
 use infrastructure\presentation\http\HttpResponse;
 use infrastructure\presentation\http\JsonResponse;
 
+#[Route('POST', '/templates')]
+#[OpenApi('Create template', ['Templates'], requestBody: 'RegisterTemplateRequest', response: 'Template', responseStatus: 201)]
 final class RegisterTemplateController extends AbstractJsonController
 {
     public function __construct(
@@ -29,13 +35,16 @@ final class RegisterTemplateController extends AbstractJsonController
             actorId: $this->requireActorId($request),
             name: $this->requireString($payload, 'name'),
             engineType: $this->requireString($payload, 'engineType'),
-            templateBody: $this->requireString($payload, 'templateBody')
+            templateBody: $this->requireString($payload, 'templateBody'),
+            isPublic: $this->optionalBool($payload, 'isPublic', false)
         ));
 
         return JsonResponse::created($result->toArray());
     }
 }
 
+#[Route('PUT', '/templates/{templateId}/body')]
+#[OpenApi('Update template body', ['Templates'], requestBody: 'UpdateTemplateBodyRequest', response: 'Template')]
 final class UpdateTemplateBodyController extends AbstractJsonController
 {
     public function __construct(
@@ -57,6 +66,31 @@ final class UpdateTemplateBodyController extends AbstractJsonController
     }
 }
 
+#[Route('PUT', '/templates/{templateId}/publicity')]
+#[OpenApi('Update template publicity', ['Templates'], requestBody: 'UpdateTemplatePublicityRequest', response: 'UpdateTemplatePublicityResult')]
+final class UpdateTemplatePublicityController extends AbstractJsonController
+{
+    public function __construct(
+        private readonly UpdateTemplatePublicityUseCaseInterface $useCase
+    ) {
+        parent::__construct();
+    }
+
+    public function __invoke(HttpRequest $request): HttpResponse
+    {
+        $payload = $this->body($request);
+        $result = $this->useCase->execute(new UpdateTemplatePublicityCommand(
+            actorId: $this->requireActorId($request),
+            templateId: $this->requireRouteParam($request, 'templateId'),
+            isPublic: $this->requireBool($payload, 'isPublic')
+        ));
+
+        return JsonResponse::ok($result->toArray());
+    }
+}
+
+#[Route('POST', '/templates/{templateId}/deactivation')]
+#[OpenApi('Deactivate template', ['Templates'], response: 'Template')]
 final class DeactivateTemplateController extends AbstractJsonController
 {
     public function __construct(

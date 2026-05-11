@@ -43,8 +43,8 @@ export const useTemplatesStore = defineStore('templates', () => {
     templates.value = templates.value.filter(t => t.id !== id)
   }
 
-  async function cloneTemplate(id: string) {
-    const clone = await templatesApi.cloneTemplate(id)
+  async function cloneTemplate(source: Template | string) {
+    const clone = await templatesApi.cloneTemplate(source)
     templates.value.push(clone)
     return clone
   }

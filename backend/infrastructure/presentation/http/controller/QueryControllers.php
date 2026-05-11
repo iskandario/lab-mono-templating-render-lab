@@ -18,12 +18,18 @@ use application\usecase\query\template\GetTemplateQuery;
 use application\usecase\query\template\GetTemplateStatsQuery;
 use application\usecase\query\template\GetTemplateStatsUseCaseInterface;
 use application\usecase\query\template\GetTemplateUseCaseInterface;
+use application\usecase\query\template\ListPublicTemplatesQuery;
+use application\usecase\query\template\ListPublicTemplatesUseCaseInterface;
 use application\usecase\query\template\ListTemplatesQuery;
 use application\usecase\query\template\ListTemplatesUseCaseInterface;
+use infrastructure\presentation\http\attribute\OpenApi;
+use infrastructure\presentation\http\attribute\Route;
 use infrastructure\presentation\http\HttpRequest;
 use infrastructure\presentation\http\HttpResponse;
 use infrastructure\presentation\http\JsonResponse;
 
+#[Route('GET', '/templates/{templateId}')]
+#[OpenApi('Get template', ['Templates'], response: 'Template')]
 final class GetTemplateController extends AbstractJsonController
 {
     public function __construct(
@@ -43,6 +49,8 @@ final class GetTemplateController extends AbstractJsonController
     }
 }
 
+#[Route('GET', '/templates')]
+#[OpenApi('List templates', ['Templates'], response: 'TemplateList', queryParameters: ['engineType', 'name', 'isActive', 'isPublic'])]
 final class ListTemplatesController extends AbstractJsonController
 {
     public function __construct(
@@ -55,7 +63,7 @@ final class ListTemplatesController extends AbstractJsonController
     {
         $results = $this->useCase->execute(new ListTemplatesQuery(
             actorId: $this->requireActorId($request),
-            filters: $this->filters($request, ['engineType', 'name', 'isActive'])
+            filters: $this->filters($request, ['engineType', 'name', 'isActive', 'isPublic'])
         ));
 
         return JsonResponse::ok([
@@ -64,6 +72,30 @@ final class ListTemplatesController extends AbstractJsonController
     }
 }
 
+#[Route('GET', '/templates/public')]
+#[OpenApi('List public templates', ['Templates'], response: 'TemplateList', queryParameters: ['engineType', 'name'], security: [])]
+final class ListPublicTemplatesController extends AbstractJsonController
+{
+    public function __construct(
+        private readonly ListPublicTemplatesUseCaseInterface $useCase
+    ) {
+        parent::__construct();
+    }
+
+    public function __invoke(HttpRequest $request): HttpResponse
+    {
+        $results = $this->useCase->execute(new ListPublicTemplatesQuery(
+            filters: $this->filters($request, ['engineType', 'name'])
+        ));
+
+        return JsonResponse::ok([
+            'items' => array_map(static fn ($view): array => $view->toArray(), $results),
+        ]);
+    }
+}
+
+#[Route('GET', '/templates/{templateId}/stats')]
+#[OpenApi('Get template stats', ['Templates'], response: 'TemplateStats')]
 final class GetTemplateStatsController extends AbstractJsonController
 {
     public function __construct(
@@ -83,6 +115,8 @@ final class GetTemplateStatsController extends AbstractJsonController
     }
 }
 
+#[Route('GET', '/render-runs/{runId}')]
+#[OpenApi('Get render run', ['Render runs'], response: 'RenderRun')]
 final class GetRenderRunController extends AbstractJsonController
 {
     public function __construct(
@@ -102,6 +136,8 @@ final class GetRenderRunController extends AbstractJsonController
     }
 }
 
+#[Route('GET', '/render-runs')]
+#[OpenApi('List render runs', ['Render runs'], response: 'RenderRunList', queryParameters: ['templateId', 'engineType', 'status'])]
 final class ListRenderRunsController extends AbstractJsonController
 {
     public function __construct(
@@ -123,6 +159,8 @@ final class ListRenderRunsController extends AbstractJsonController
     }
 }
 
+#[Route('GET', '/render-runs/failures/recent')]
+#[OpenApi('List recent render failures', ['Render runs'], response: 'RenderRunList', queryParameters: ['limit'])]
 final class GetRecentFailuresController extends AbstractJsonController
 {
     public function __construct(
@@ -145,6 +183,8 @@ final class GetRecentFailuresController extends AbstractJsonController
     }
 }
 
+#[Route('GET', '/benchmark-runs/{benchmarkRunId}')]
+#[OpenApi('Get benchmark run', ['Benchmark runs'], response: 'BenchmarkRun')]
 final class GetBenchmarkRunController extends AbstractJsonController
 {
     public function __construct(
@@ -164,6 +204,8 @@ final class GetBenchmarkRunController extends AbstractJsonController
     }
 }
 
+#[Route('GET', '/benchmark-runs')]
+#[OpenApi('List benchmark runs', ['Benchmark runs'], response: 'BenchmarkRunList', queryParameters: ['templateId', 'engineType', 'status', 'iterationsN'])]
 final class ListBenchmarkRunsController extends AbstractJsonController
 {
     public function __construct(
