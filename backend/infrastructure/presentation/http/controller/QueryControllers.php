@@ -18,6 +18,8 @@ use application\usecase\query\template\GetTemplateQuery;
 use application\usecase\query\template\GetTemplateStatsQuery;
 use application\usecase\query\template\GetTemplateStatsUseCaseInterface;
 use application\usecase\query\template\GetTemplateUseCaseInterface;
+use application\usecase\query\template\ListPublicTemplatesQuery;
+use application\usecase\query\template\ListPublicTemplatesUseCaseInterface;
 use application\usecase\query\template\ListTemplatesQuery;
 use application\usecase\query\template\ListTemplatesUseCaseInterface;
 use infrastructure\presentation\http\attribute\OpenApi;
@@ -48,7 +50,7 @@ final class GetTemplateController extends AbstractJsonController
 }
 
 #[Route('GET', '/templates')]
-#[OpenApi('List templates', ['Templates'], response: 'TemplateList', queryParameters: ['engineType', 'name', 'isActive'])]
+#[OpenApi('List templates', ['Templates'], response: 'TemplateList', queryParameters: ['engineType', 'name', 'isActive', 'isPublic'])]
 final class ListTemplatesController extends AbstractJsonController
 {
     public function __construct(
@@ -61,7 +63,29 @@ final class ListTemplatesController extends AbstractJsonController
     {
         $results = $this->useCase->execute(new ListTemplatesQuery(
             actorId: $this->requireActorId($request),
-            filters: $this->filters($request, ['engineType', 'name', 'isActive'])
+            filters: $this->filters($request, ['engineType', 'name', 'isActive', 'isPublic'])
+        ));
+
+        return JsonResponse::ok([
+            'items' => array_map(static fn ($view): array => $view->toArray(), $results),
+        ]);
+    }
+}
+
+#[Route('GET', '/templates/public')]
+#[OpenApi('List public templates', ['Templates'], response: 'TemplateList', queryParameters: ['engineType', 'name'], security: [])]
+final class ListPublicTemplatesController extends AbstractJsonController
+{
+    public function __construct(
+        private readonly ListPublicTemplatesUseCaseInterface $useCase
+    ) {
+        parent::__construct();
+    }
+
+    public function __invoke(HttpRequest $request): HttpResponse
+    {
+        $results = $this->useCase->execute(new ListPublicTemplatesQuery(
+            filters: $this->filters($request, ['engineType', 'name'])
         ));
 
         return JsonResponse::ok([

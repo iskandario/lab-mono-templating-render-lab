@@ -133,6 +133,36 @@ abstract class AbstractJsonController
     /**
      * @param array<string, mixed> $payload
      */
+    protected function requireBool(array $payload, string $field): bool
+    {
+        $value = $payload[$field] ?? null;
+        if (!is_bool($value)) {
+            throw new BadRequestHttpException('request.field.invalid_bool', ['field' => $field]);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    protected function optionalBool(array $payload, string $field, bool $default = false): bool
+    {
+        $value = $payload[$field] ?? null;
+        if ($value === null) {
+            return $default;
+        }
+
+        if (!is_bool($value)) {
+            throw new BadRequestHttpException('request.field.invalid_bool', ['field' => $field]);
+        }
+
+        return $value;
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
     protected function requireFloat(array $payload, string $field): float
     {
         $value = $payload[$field] ?? null;

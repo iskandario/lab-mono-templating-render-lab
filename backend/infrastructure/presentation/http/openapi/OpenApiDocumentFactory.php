@@ -204,11 +204,17 @@ final class OpenApiDocumentFactory
                 'name' => ['type' => 'string'],
                 'engineType' => ['type' => 'string'],
                 'templateBody' => ['type' => 'string'],
+                'isPublic' => ['type' => 'boolean'],
                 'isActive' => ['type' => 'boolean'],
                 'createdAt' => ['type' => 'string', 'format' => 'date-time'],
                 'updatedAt' => ['type' => ['string', 'null'], 'format' => 'date-time'],
             ]),
             'TemplateList' => $this->listOf('Template'),
+            'UpdateTemplatePublicityResult' => $this->object([
+                'templateId' => ['type' => 'string'],
+                'isPublic' => ['type' => 'boolean'],
+                'updatedAt' => ['type' => 'string', 'format' => 'date-time'],
+            ], ['templateId', 'isPublic', 'updatedAt']),
             'TemplateStats' => $this->object([
                 'templateId' => ['type' => 'string'],
                 'totalRuns' => ['type' => 'integer'],
@@ -218,8 +224,9 @@ final class OpenApiDocumentFactory
                 'minDurationMs' => ['type' => ['integer', 'null']],
                 'maxDurationMs' => ['type' => ['integer', 'null']],
             ]),
-            'RegisterTemplateRequest' => $this->object(['name' => ['type' => 'string'], 'engineType' => ['type' => 'string'], 'templateBody' => ['type' => 'string']], ['name', 'engineType', 'templateBody']),
+            'RegisterTemplateRequest' => $this->object(['name' => ['type' => 'string'], 'engineType' => ['type' => 'string'], 'templateBody' => ['type' => 'string'], 'isPublic' => ['type' => 'boolean']], ['name', 'engineType', 'templateBody']),
             'UpdateTemplateBodyRequest' => $this->object(['templateBody' => ['type' => 'string']], ['templateBody']),
+            'UpdateTemplatePublicityRequest' => $this->object(['isPublic' => ['type' => 'boolean']], ['isPublic']),
             'RenderRun' => $this->object([
                 'runId' => ['type' => 'string'],
                 'ownerId' => ['type' => 'string'],

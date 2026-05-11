@@ -30,6 +30,8 @@ use application\usecase\command\template\RegisterTemplateUseCase;
 use application\usecase\command\template\RegisterTemplateUseCaseInterface;
 use application\usecase\command\template\UpdateTemplateBodyUseCase;
 use application\usecase\command\template\UpdateTemplateBodyUseCaseInterface;
+use application\usecase\command\template\UpdateTemplatePublicityUseCase;
+use application\usecase\command\template\UpdateTemplatePublicityUseCaseInterface;
 use application\usecase\query\benchmark_run\GetBenchmarkRunUseCase;
 use application\usecase\query\benchmark_run\GetBenchmarkRunUseCaseInterface;
 use application\usecase\query\benchmark_run\ListBenchmarkRunsUseCase;
@@ -44,6 +46,8 @@ use application\usecase\query\template\GetTemplateStatsUseCase;
 use application\usecase\query\template\GetTemplateStatsUseCaseInterface;
 use application\usecase\query\template\GetTemplateUseCase;
 use application\usecase\query\template\GetTemplateUseCaseInterface;
+use application\usecase\query\template\ListPublicTemplatesUseCase;
+use application\usecase\query\template\ListPublicTemplatesUseCaseInterface;
 use application\usecase\query\template\ListTemplatesUseCase;
 use application\usecase\query\template\ListTemplatesUseCaseInterface;
 use domain\account\repository\AuthSessionRepositoryInterface;
@@ -66,6 +70,7 @@ use infrastructure\presentation\http\controller\GetTemplateController;
 use infrastructure\presentation\http\controller\GetTemplateStatsController;
 use infrastructure\presentation\http\controller\LoginUserController;
 use infrastructure\presentation\http\controller\ListBenchmarkRunsController;
+use infrastructure\presentation\http\controller\ListPublicTemplatesController;
 use infrastructure\presentation\http\controller\ListRenderRunsController;
 use infrastructure\presentation\http\controller\ListTemplatesController;
 use infrastructure\presentation\http\controller\LogoutUserController;
@@ -77,6 +82,7 @@ use infrastructure\presentation\http\controller\StartBenchmarkRunController;
 use infrastructure\presentation\http\controller\StartRenderRunController;
 use infrastructure\presentation\http\controller\SwaggerUiController;
 use infrastructure\presentation\http\controller\UpdateTemplateBodyController;
+use infrastructure\presentation\http\controller\UpdateTemplatePublicityController;
 use infrastructure\presentation\http\JwtSessionTokenProcessor;
 use infrastructure\presentation\http\SessionCookieFactory;
 use infrastructure\presentation\http\openapi\OpenApiDocumentFactory;
@@ -110,9 +116,11 @@ final class PostgresServiceContainer
         return match ($className) {
             RegisterTemplateController::class => $this->get(RegisterTemplateController::class, fn () => new RegisterTemplateController($this->registerTemplateUseCase())),
             ListTemplatesController::class => $this->get(ListTemplatesController::class, fn () => new ListTemplatesController($this->listTemplatesUseCase())),
+            ListPublicTemplatesController::class => $this->get(ListPublicTemplatesController::class, fn () => new ListPublicTemplatesController($this->listPublicTemplatesUseCase())),
             GetTemplateController::class => $this->get(GetTemplateController::class, fn () => new GetTemplateController($this->getTemplateUseCase())),
             GetTemplateStatsController::class => $this->get(GetTemplateStatsController::class, fn () => new GetTemplateStatsController($this->getTemplateStatsUseCase())),
             UpdateTemplateBodyController::class => $this->get(UpdateTemplateBodyController::class, fn () => new UpdateTemplateBodyController($this->updateTemplateBodyUseCase())),
+            UpdateTemplatePublicityController::class => $this->get(UpdateTemplatePublicityController::class, fn () => new UpdateTemplatePublicityController($this->updateTemplatePublicityUseCase())),
             DeactivateTemplateController::class => $this->get(DeactivateTemplateController::class, fn () => new DeactivateTemplateController($this->deactivateTemplateUseCase())),
             ListRenderRunsController::class => $this->get(ListRenderRunsController::class, fn () => new ListRenderRunsController($this->listRenderRunsUseCase())),
             StartRenderRunController::class => $this->get(StartRenderRunController::class, fn () => new StartRenderRunController($this->startRenderRunUseCase())),
@@ -178,6 +186,13 @@ final class PostgresServiceContainer
         ));
     }
 
+    public function listPublicTemplatesUseCase(): ListPublicTemplatesUseCaseInterface
+    {
+        return $this->get(ListPublicTemplatesUseCaseInterface::class, fn () => new ListPublicTemplatesUseCase(
+            $this->templateRepository()
+        ));
+    }
+
     public function getTemplateStatsUseCase(): GetTemplateStatsUseCaseInterface
     {
         return $this->get(GetTemplateStatsUseCaseInterface::class, fn () => new GetTemplateStatsUseCase(
@@ -189,6 +204,14 @@ final class PostgresServiceContainer
     public function updateTemplateBodyUseCase(): UpdateTemplateBodyUseCaseInterface
     {
         return $this->get(UpdateTemplateBodyUseCaseInterface::class, fn () => new UpdateTemplateBodyUseCase(
+            $this->templateRepository(),
+            $this->clock()
+        ));
+    }
+
+    public function updateTemplatePublicityUseCase(): UpdateTemplatePublicityUseCaseInterface
+    {
+        return $this->get(UpdateTemplatePublicityUseCaseInterface::class, fn () => new UpdateTemplatePublicityUseCase(
             $this->templateRepository(),
             $this->clock()
         ));

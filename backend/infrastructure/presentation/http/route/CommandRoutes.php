@@ -18,6 +18,7 @@ use infrastructure\presentation\http\controller\GetTemplateController;
 use infrastructure\presentation\http\controller\GetTemplateStatsController;
 use infrastructure\presentation\http\controller\LoginUserController;
 use infrastructure\presentation\http\controller\ListBenchmarkRunsController;
+use infrastructure\presentation\http\controller\ListPublicTemplatesController;
 use infrastructure\presentation\http\controller\ListRenderRunsController;
 use infrastructure\presentation\http\controller\ListTemplatesController;
 use infrastructure\presentation\http\controller\LogoutUserController;
@@ -29,6 +30,7 @@ use infrastructure\presentation\http\controller\StartBenchmarkRunController;
 use infrastructure\presentation\http\controller\StartRenderRunController;
 use infrastructure\presentation\http\controller\SwaggerUiController;
 use infrastructure\presentation\http\controller\UpdateTemplateBodyController;
+use infrastructure\presentation\http\controller\UpdateTemplatePublicityController;
 
 final class CommandRoutes
 {
@@ -39,10 +41,12 @@ final class CommandRoutes
     {
         return [
             ListTemplatesController::class,
+            ListPublicTemplatesController::class,
             RegisterTemplateController::class,
             GetTemplateController::class,
             GetTemplateStatsController::class,
             UpdateTemplateBodyController::class,
+            UpdateTemplatePublicityController::class,
             DeactivateTemplateController::class,
             ListRenderRunsController::class,
             StartRenderRunController::class,
