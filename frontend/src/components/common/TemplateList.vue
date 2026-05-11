@@ -8,12 +8,15 @@ defineProps<{
   showOpen?: boolean
   showClone?: boolean
   showDelete?: boolean
+  showPublicToggle?: boolean
+  publicLoadingId?: string | null
 }>()
 
 const emit = defineEmits<{
   open: [template: Template]
   clone: [template: Template]
   delete: [template: Template]
+  'public-toggle': [template: Template, isPublic: boolean]
 }>()
 </script>
 
@@ -36,9 +39,12 @@ const emit = defineEmits<{
       :show-open="showOpen"
       :show-clone="showClone"
       :show-delete="showDelete"
+      :show-public-toggle="showPublicToggle"
+      :public-loading="publicLoadingId === tpl.id"
       @open="emit('open', $event)"
       @clone="emit('clone', $event)"
       @delete="emit('delete', $event)"
+      @public-toggle="(template, isPublic) => emit('public-toggle', template, isPublic)"
     />
   </div>
 </template>

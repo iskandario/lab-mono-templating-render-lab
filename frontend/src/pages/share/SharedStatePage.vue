@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStatePersistence } from '@/composables/use-state-persistence'
 import { saveState } from '@/api/state-api'
+import PageShell from '@/components/common/PageShell.vue'
 import { useAuthStore } from '@/stores/auth-store'
 import { useSandboxStore } from '@/stores/sandbox-store'
 
@@ -48,11 +49,20 @@ async function saveCopy() {
 </script>
 
 <template>
-  <v-container>
-    <div v-if="!error && !loaded" class="d-flex justify-center align-center" style="height: 200px">
+  <PageShell class="shared-state-page" max-width="720">
+    <template #header>
+      <div>
+        <div class="text-h5 font-weight-bold">Shared sandbox state</div>
+        <div class="text-body-2 text-medium-emphasis mt-1">
+          Откройте состояние по ссылке или сохраните себе отдельную копию.
+        </div>
+      </div>
+    </template>
+
+    <div v-if="!error && !loaded" class="shared-state-status">
       <v-progress-circular indeterminate color="primary" />
     </div>
-    <div v-else-if="loaded" class="text-center mt-8">
+    <div v-else-if="loaded" class="text-center">
       <p class="text-medium-emphasis mb-4">Состояние загружено.</p>
       <div class="d-flex justify-center ga-3 flex-wrap">
         <v-btn color="primary" @click="router.push('/sandbox')">Открыть в Sandbox</v-btn>
@@ -71,9 +81,22 @@ async function saveCopy() {
       </div>
       <p v-if="saveError" class="text-error text-body-2 mt-4">Не удалось сохранить копию.</p>
     </div>
-    <div v-else class="text-center mt-8">
+    <div v-else class="text-center">
       <p class="text-medium-emphasis mb-4">Состояние не найдено.</p>
       <v-btn color="primary" to="/sandbox">Перейти в Sandbox</v-btn>
     </div>
-  </v-container>
+
+    <template #footer>
+      <div>Сохранение копии создаёт новый state от имени текущего аккаунта.</div>
+    </template>
+  </PageShell>
 </template>
+
+<style scoped>
+.shared-state-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+</style>

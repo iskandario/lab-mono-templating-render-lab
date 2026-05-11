@@ -6,12 +6,15 @@ defineProps<{
   showOpen?: boolean
   showClone?: boolean
   showDelete?: boolean
+  showPublicToggle?: boolean
+  publicLoading?: boolean
 }>()
 
 const emit = defineEmits<{
   open: [template: Template]
   clone: [template: Template]
   delete: [template: Template]
+  'public-toggle': [template: Template, isPublic: boolean]
 }>()
 
 function formatDate(iso: string) {
@@ -32,6 +35,21 @@ function formatDate(iso: string) {
       {{ template.description }}
     </v-card-text>
     <v-card-actions>
+      <v-switch
+        v-if="showPublicToggle"
+        :model-value="template.isPublic"
+        :loading="publicLoading"
+        :disabled="publicLoading"
+        color="primary"
+        density="compact"
+        hide-details
+        class="public-switch"
+        @update:model-value="value => emit('public-toggle', template, Boolean(value))"
+      >
+        <template #label>
+          <span class="text-body-2">{{ template.isPublic ? 'Публичный' : 'Личный' }}</span>
+        </template>
+      </v-switch>
       <v-btn
         v-if="showOpen"
         size="small"
@@ -62,3 +80,10 @@ function formatDate(iso: string) {
     </v-card-actions>
   </v-card>
 </template>
+
+<style scoped>
+.public-switch {
+  flex: 0 0 auto;
+  margin-right: 4px;
+}
+</style>

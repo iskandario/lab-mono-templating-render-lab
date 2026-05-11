@@ -10,8 +10,10 @@ export const ENDPOINTS = {
   },
   templates: {
     list: '/templates',
+    publicList: '/templates/public',
     byId: (id: string) => `/templates/${id}`,
     updateBody: (id: string) => `/templates/${id}/body`,
+    updatePublicity: (id: string) => `/templates/${id}/publicity`,
     deactivate: (id: string) => `/templates/${id}/deactivation`,
   },
   renderRuns: {

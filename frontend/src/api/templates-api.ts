@@ -9,6 +9,7 @@ interface BackendTemplate {
   name: string
   engineType: string
   templateBody: string
+  isPublic: boolean
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -21,20 +22,19 @@ function fromBackend(bt: BackendTemplate): Template {
     name: bt.name,
     engineId: bt.engineType,
     code: bt.templateBody,
-    isPublic: false,
+    isPublic: bt.isPublic,
     createdAt: bt.createdAt,
     updatedAt: bt.updatedAt,
   }
 }
 
 export async function getMyTemplates(): Promise<Template[]> {
-  const res = await http.get<{ items: BackendTemplate[] }>(ENDPOINTS.templates.list)
+  const res = await http.get<{ items: BackendTemplate[] }>(`${ENDPOINTS.templates.list}?isActive=true`)
   return res.items.map(fromBackend)
 }
 
 export async function getPublicTemplates(): Promise<Template[]> {
-  // Backend has no separate public endpoint — returns actor's templates
-  const res = await http.get<{ items: BackendTemplate[] }>(ENDPOINTS.templates.list)
+  const res = await http.get<{ items: BackendTemplate[] }>(ENDPOINTS.templates.publicList)
   return res.items.map(fromBackend)
 }
 
@@ -50,15 +50,24 @@ export async function createTemplate(
     name: data.name,
     engineType: data.engineId,
     templateBody: data.code,
+    isPublic: data.isPublic,
   })
   return fromBackend(bt)
 }
 
 export async function updateTemplate(id: string, data: Partial<Template>): Promise<Template> {
-  // Backend only supports updating the template body
-  await http.put<{ templateId: string; updatedAt: string }>(ENDPOINTS.templates.updateBody(id), {
-    templateBody: data.code ?? '',
-  })
+  if (data.code !== undefined) {
+    await http.put<{ templateId: string; updatedAt: string }>(ENDPOINTS.templates.updateBody(id), {
+      templateBody: data.code,
+    })
+  }
+
+  if (data.isPublic !== undefined) {
+    await http.put<{ templateId: string; isPublic: boolean; updatedAt: string }>(ENDPOINTS.templates.updatePublicity(id), {
+      isPublic: data.isPublic,
+    })
+  }
+
   return getTemplate(id)
 }
 
@@ -67,9 +76,10 @@ export async function deleteTemplate(id: string): Promise<void> {
   await http.post<unknown>(ENDPOINTS.templates.deactivate(id), {})
 }
 
-export async function cloneTemplate(id: string): Promise<Template> {
-  // No clone endpoint — fetch source then create copy with modified name
-  const source = await getTemplate(id)
+export async function cloneTemplate(sourceOrId: Template | string): Promise<Template> {
+  // No clone endpoint. If the caller already has a public template from /templates/public,
+  // use that snapshot because GET /templates/{id} is owner-scoped on the backend.
+  const source = typeof sourceOrId === 'string' ? await getTemplate(sourceOrId) : sourceOrId
   return createTemplate({
     name: `${source.name} (copy)`,
     engineId: source.engineId,
