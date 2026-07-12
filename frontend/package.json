@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite --config vite.config.dev.ts --open",
     "build": "run-p type-check \"build-only {@}\" --",
+    "build:host": "vite build --config vite.config.host.ts",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
